@@ -1,0 +1,359 @@
+.container {
+  padding: 40rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+/* 标题区 */
+.header {
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.title {
+  display: block;
+  font-size: 56rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 16rpx;
+}
+
+.subtitle {
+  display: block;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 选择区 */
+.selector-section {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.selector-item {
+  margin-bottom: 40rpx;
+}
+
+.selector-item:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 20rpx;
+}
+
+.picker {
+  background: #f5f7fa;
+  padding: 24rpx 32rpx;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+  color: #333;
+}
+
+/* 出行目的标签 */
+.intent-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.tag {
+  padding: 20rpx 32rpx;
+  background: #f5f7fa;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.tag-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* 生成按钮 */
+.generate-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: bold;
+  padding: 32rpx;
+  border-radius: 48rpx;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(245, 87, 108, 0.4);
+  margin-bottom: 40rpx;
+}
+
+.generate-btn::after {
+  border: none;
+}
+
+/* 卡片展示区 */
+.card-display {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 视图切换按钮 */
+.view-toggle {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 32rpx;
+  background: #f5f7fa;
+  padding: 8rpx;
+  border-radius: 12rpx;
+  flex-wrap: wrap;
+}
+
+.toggle-btn {
+  flex: 1;
+  min-width: 180rpx;
+  text-align: center;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: bold;
+}
+
+.toggle-btn.theme-btn {
+  background: #fff;
+  border: 2rpx solid #667eea;
+  color: #667eea;
+}
+
+.toggle-btn.theme-btn:active {
+  background: #667eea;
+  color: #fff;
+}
+
+.card-content {
+  background: #f5f7fa;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  max-height: 800rpx;
+  overflow-y: auto;
+}
+
+.card-text {
+  font-size: 26rpx;
+  line-height: 44rpx;
+  color: #333;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: "Courier New", Courier, monospace;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 200rpx;
+  background: #fff;
+  color: #667eea;
+  font-size: 28rpx;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid #667eea;
+  transition: all 0.3s;
+}
+
+.action-btn:active {
+  background: #667eea;
+  color: #fff;
+  transform: scale(0.98);
+}
+
+.action-btn::after {
+  border: none;
+}
+
+/* 图片卡片 */
+.card-image-wrapper {
+  background: #f5f7fa;
+  border-radius: 16rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  min-height: 400rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-image {
+  width: 100%;
+  border-radius: 12rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.generating-tip {
+  font-size: 28rpx;
+  color: #999;
+  text-align: center;
+}
+
+/* 隐藏的Canvas */
+.hidden-canvas {
+  position: fixed;
+  left: -9999rpx;
+  top: -9999rpx;
+}
+
+/* 全屏显示 */
+.fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  padding: 20rpx 0;
+}
+
+.fullscreen-image {
+  width: 100%;
+  display: block;
+  margin: 0 auto;
+}
+
+.fullscreen-tip {
+  position: fixed;
+  bottom: 60rpx;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 28rpx;
+  opacity: 0.8;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+/* 主题选择器 */
+.theme-selector-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9998;
+  display: flex;
+  align-items: flex-end;
+}
+
+.theme-selector {
+  width: 100%;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 40rpx;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.theme-selector-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+/* 新版主题列表 - 长条卡片 */
+.theme-list-new {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.theme-card {
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  transition: all 0.3s;
+  border: 4rpx solid transparent;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.theme-card.active {
+  border-color: #667eea;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  transform: scale(1.02);
+}
+
+.theme-gradient {
+  width: 100%;
+  height: 120rpx;
+  position: relative;
+}
+
+.theme-info {
+  padding: 24rpx 32rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.theme-name-new {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.theme-check-new {
+  font-size: 24rpx;
+  color: #667eea;
+  background: #f0f4ff;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-weight: 600;
+}
+
+.theme-close-btn {
+  width: 100%;
+  background: #f5f7fa;
+  color: #666;
+  border: none;
+  padding: 28rpx;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+}
+
+.theme-close-btn::after {
+  border: none;
+}

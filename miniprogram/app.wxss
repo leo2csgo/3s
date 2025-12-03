@@ -1,0 +1,21 @@
+/* 全局样式 */
+page {
+  background-color: #f5f7fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+/* 覆盖小程序默认按钮样式 */
+button {
+  border: none;
+  line-height: normal;
+  padding: 0;
+  margin: 0;
+  background: none;
+  font-size: inherit;
+  color: inherit;
+}
+
+button::after {
+  border: none;
+}

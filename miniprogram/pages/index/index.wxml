@@ -1,0 +1,191 @@
+<view class="container">
+  <!-- 标题区 -->
+  <view class="header">
+    <text class="title">3秒出卡</text>
+    <text class="subtitle">智能生成你的专属行程</text>
+  </view>
+
+  <!-- 选择区 -->
+  <view class="selector-section">
+    <!-- 城市选择 -->
+    <view class="selector-item">
+      <text class="label">选择城市</text>
+      <picker mode="selector" range="{{cities}}" value="{{cityIndex}}" bindchange="onCityChange">
+        <view class="picker">
+          {{cities[cityIndex]}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 天数选择 -->
+    <view class="selector-item">
+      <text class="label">出行天数</text>
+      <picker mode="selector" range="{{days}}" value="{{dayIndex}}" bindchange="onDayChange">
+        <view class="picker">
+          {{days[dayIndex]}}天
+        </view>
+      </picker>
+    </view>
+
+    <!-- 出行目的 -->
+    <view class="selector-item">
+      <text class="label">出行目的</text>
+      <view class="intent-tags">
+        <view 
+          wx:for="{{intents}}" 
+          wx:key="index" 
+          class="tag {{intentIndex === index ? 'tag-active' : ''}}"
+          bindtap="onIntentChange"
+          data-index="{{index}}">
+          {{item}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 生成按钮 -->
+  <button class="generate-btn" bindtap="generateCard" loading="{{loading}}">
+    {{loading ? '正在为您生成...' : '3秒出卡'}}
+  </button>
+
+  <!-- 卡片展示区 -->
+  <view class="card-display" wx:if="{{cardContent}}">
+    <!-- 切换按钮 -->
+    <view class="view-toggle">
+      <view class="toggle-btn {{viewMode === 'text' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="text">
+        📝 文字版
+      </view>
+      <view class="toggle-btn {{viewMode === 'image' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="image">
+        🖼️ 图片版
+      </view>
+      <view wx:if="{{viewMode === 'image'}}" class="toggle-btn theme-btn" bindtap="showThemeSelector">
+        🎨 主题
+      </view>
+      <view wx:if="{{viewMode === 'image'}}" class="toggle-btn theme-btn" bindtap="showBgSelector">
+        🖼️ 背景
+      </view>
+    </view>
+
+    <!-- 文字卡片 -->
+    <view class="card-content" wx:if="{{viewMode === 'text'}}">
+      <text class="card-text">{{cardContent}}</text>
+    </view>
+
+    <!-- 图片卡片 -->
+    <view class="card-image-wrapper" wx:if="{{viewMode === 'image'}}">
+      <image
+        wx:if="{{cardImagePath}}"
+        class="card-image"
+        src="{{cardImagePath}}"
+        mode="widthFix"
+        bindtap="showFullscreenImage"></image>
+      <view wx:else class="generating-tip">正在生成图片...</view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-buttons">
+      <button wx:if="{{viewMode === 'image'}}" class="action-btn" bindtap="saveToAlbum">💾 保存到相册</button>
+      <button wx:if="{{viewMode === 'text'}}" class="action-btn" bindtap="copyText">📋 复制文本</button>
+      <button class="action-btn" open-type="share">📤 分享给好友</button>
+      <button class="action-btn" bindtap="regenerate">🔄 重新生成</button>
+    </view>
+  </view>
+
+  <!-- 隐藏的Canvas用于绘制图片 -->
+  <canvas canvas-id="cardCanvas" id="cardCanvas" class="hidden-canvas" style="width: 750px; height: {{canvasHeight || 1334}}px;"></canvas>
+
+  <!-- 全屏显示图片 -->
+  <view class="fullscreen-overlay" wx:if="{{showFullscreen}}" bindtap="closeFullscreen">
+    <image class="fullscreen-image" src="{{cardImagePath}}" mode="widthFix" show-menu-by-longpress></image>
+    <view class="fullscreen-tip">点击关闭 | 长按保存</view>
+  </view>
+
+  <!-- 主题选择器 -->
+  <view class="theme-selector-overlay" wx:if="{{showThemeSelector}}" bindtap="hideThemeSelector">
+    <view class="theme-selector" catchtap="{{null}}">
+      <view class="theme-selector-title">选择主题配色</view>
+      <view class="theme-list-new">
+        <view
+          wx:for="{{themes}}"
+          wx:key="index"
+          class="theme-card {{themeIndex === index ? 'active' : ''}}"
+          bindtap="selectTheme"
+          data-index="{{index}}">
+          <view class="theme-gradient" style="background: linear-gradient(135deg, {{item.bg1}} 0%, {{item.bg2}} 100%);"></view>
+          <view class="theme-info">
+            <text class="theme-name-new">{{item.name}}</text>
+            <view wx:if="{{themeIndex === index}}" class="theme-check-new">✓ 使用中</view>
+          </view>
+        </view>
+      </view>
+      <button class="theme-close-btn" bindtap="hideThemeSelector">关闭</button>
+    </view>
+  </view>
+
+  <!-- 背景选择器 -->
+  <view class="theme-selector-overlay" wx:if="{{showBgSelector}}" bindtap="hideBgSelector">
+    <view class="theme-selector" catchtap="{{null}}">
+      <view class="theme-selector-title">选择背景</view>
+      <view class="theme-list-new">
+        <!-- 渐变 -->
+        <view
+          class="theme-card {{bgIndex === 0 ? 'active' : ''}}"
+          bindtap="selectBackground"
+          data-index="0">
+          <view class="theme-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></view>
+          <view class="theme-info">
+            <text class="theme-name-new">渐变</text>
+            <view wx:if="{{bgIndex === 0}}" class="theme-check-new">✓ 使用中</view>
+          </view>
+        </view>
+        <!-- 星空 -->
+        <view
+          class="theme-card {{bgIndex === 1 ? 'active' : ''}}"
+          bindtap="selectBackground"
+          data-index="1">
+          <view class="theme-gradient" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);"></view>
+          <view class="theme-info">
+            <text class="theme-name-new">星空</text>
+            <view wx:if="{{bgIndex === 1}}" class="theme-check-new">✓ 使用中</view>
+          </view>
+        </view>
+        <!-- 海洋 -->
+        <view
+          class="theme-card {{bgIndex === 2 ? 'active' : ''}}"
+          bindtap="selectBackground"
+          data-index="2">
+          <view class="theme-gradient" style="background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);"></view>
+          <view class="theme-info">
+            <text class="theme-name-new">海洋</text>
+            <view wx:if="{{bgIndex === 2}}" class="theme-check-new">✓ 使用中</view>
+          </view>
+        </view>
+        <!-- 森林 -->
+        <view
+          class="theme-card {{bgIndex === 3 ? 'active' : ''}}"
+          bindtap="selectBackground"
+          data-index="3">
+          <view class="theme-gradient" style="background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);"></view>
+          <view class="theme-info">
+            <text class="theme-name-new">森林</text>
+            <view wx:if="{{bgIndex === 3}}" class="theme-check-new">✓ 使用中</view>
+          </view>
+        </view>
+        <!-- 自定义 -->
+        <view
+          class="theme-card {{bgIndex === 4 ? 'active' : ''}}"
+          bindtap="selectBackground"
+          data-index="4">
+          <view class="theme-gradient" style="background: #f5f7fa; display: flex; align-items: center; justify-content: center; font-size: 48rpx;">
+            📷
+          </view>
+          <view class="theme-info">
+            <text class="theme-name-new">自定义图片</text>
+            <view wx:if="{{bgIndex === 4}}" class="theme-check-new">✓ 使用中</view>
+          </view>
+        </view>
+      </view>
+      <button class="theme-close-btn" bindtap="hideBgSelector">关闭</button>
+    </view>
+  </view>
+</view>
