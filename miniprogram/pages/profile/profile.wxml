@@ -1,0 +1,113 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <view class="avatar-wrapper">
+      <image class="avatar" src="{{userInfo.avatarUrl || '/images/3s.jpg'}}" mode="aspectFill"></image>
+    </view>
+    <view class="user-info">
+      <text class="nickname">{{userInfo.nickName || '旅行者'}}</text>
+      <text class="user-stats">已创建 {{stats.tripCount}} 份路书</text>
+    </view>
+  </view>
+
+  <!-- 数据统计 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-value">{{stats.tripCount}}</text>
+      <text class="stat-label">路书</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.poiCount}}</text>
+      <text class="stat-label">地点</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.cityCount}}</text>
+      <text class="stat-label">城市</text>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <view class="section-title">常用功能</view>
+    
+    <view class="menu-card">
+      <view class="menu-item" bindtap="goToFavorites">
+        <text class="menu-icon">⭐</text>
+        <text class="menu-text">我的收藏</text>
+        <text class="menu-count">{{favorites.length}}</text>
+        <text class="menu-arrow">→</text>
+      </view>
+      
+      <view class="menu-item" bindtap="goToHistory">
+        <text class="menu-icon">🕐</text>
+        <text class="menu-text">浏览历史</text>
+        <text class="menu-arrow">→</text>
+      </view>
+      
+      <view class="menu-item" bindtap="goToDownloads">
+        <text class="menu-icon">📥</text>
+        <text class="menu-text">离线路书</text>
+        <text class="menu-arrow">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 偏好设置 -->
+  <view class="menu-section">
+    <view class="section-title">偏好设置</view>
+    
+    <view class="menu-card">
+      <view class="menu-item" bindtap="setDefaultCity">
+        <text class="menu-icon">🏠</text>
+        <text class="menu-text">默认出发地</text>
+        <text class="menu-value">{{settings.defaultCity || '未设置'}}</text>
+        <text class="menu-arrow">→</text>
+      </view>
+      
+      <view class="menu-item" bindtap="setMapApp">
+        <text class="menu-icon">🗺️</text>
+        <text class="menu-text">地图偏好</text>
+        <text class="menu-value">{{settings.mapApp || '微信地图'}}</text>
+        <text class="menu-arrow">→</text>
+      </view>
+      
+      <view class="menu-item">
+        <text class="menu-icon">🌙</text>
+        <text class="menu-text">深色模式</text>
+        <switch checked="{{settings.darkMode}}" bindchange="toggleDarkMode" color="#a18cd1"></switch>
+      </view>
+    </view>
+  </view>
+
+  <!-- 其他 -->
+  <view class="menu-section">
+    <view class="menu-card">
+      <view class="menu-item" bindtap="goToFeedback">
+        <text class="menu-icon">💬</text>
+        <text class="menu-text">意见反馈</text>
+        <text class="menu-arrow">→</text>
+      </view>
+      
+      <view class="menu-item" bindtap="goToAbout">
+        <text class="menu-icon">ℹ️</text>
+        <text class="menu-text">关于我们</text>
+        <text class="menu-arrow">→</text>
+      </view>
+      
+      <button class="menu-item share-btn" open-type="share">
+        <text class="menu-icon">📤</text>
+        <text class="menu-text">分享给朋友</text>
+        <text class="menu-arrow">→</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    <text>路书 v1.0.0</text>
+  </view>
+</view>
+

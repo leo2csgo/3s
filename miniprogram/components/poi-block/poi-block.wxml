@@ -1,0 +1,58 @@
+<!--
+  POI Block - 地点块组件
+  复用原有的毛玻璃活动卡片样式
+-->
+<view class="poi-block {{editMode ? 'edit-mode' : ''}}">
+  <!-- 删除按钮 (仅编辑模式可见) -->
+  <view class="delete-btn" wx:if="{{editMode}}" catchtap="onDeleteTap">
+    <text class="delete-icon">×</text>
+  </view>
+
+  <!-- 时间和费用行 -->
+  <view class="time-row">
+    <text class="time-tag">{{block.content.startTime || '全天'}}</text>
+    <view class="cost-tag" wx:if="{{block.content.cost > 0}}">
+      💰 ¥{{block.content.cost}}
+    </view>
+  </view>
+
+  <!-- 主内容区 -->
+  <view class="main-content">
+    <!-- 名称和导航按钮 -->
+    <view class="name-row">
+      <text class="poi-name">{{block.content.name}}</text>
+      <view class="nav-btn" bindtap="onNavTap">
+        <view class="nav-icon-bg">
+          <text class="nav-icon">↗</text>
+        </view>
+        <text class="nav-text">去这里</text>
+      </view>
+    </view>
+
+    <!-- 描述/地址 (可编辑) -->
+    <view class="desc-wrapper">
+      <textarea
+        wx:if="{{editMode}}"
+        class="desc-input"
+        auto-height
+        maxlength="200"
+        placeholder="点击编辑活动描述..."
+        value="{{block.content.description || block.content.address}}"
+        bindinput="onDescInput"
+        bindblur="onDescBlur"
+      />
+      <text wx:else class="desc-text">{{block.content.description || block.content.address || '暂无描述'}}</text>
+    </view>
+
+    <!-- 时长 -->
+    <view class="duration-row" wx:if="{{block.content.duration}}">
+      <text class="duration-text">⏱ {{formattedDuration}}</text>
+    </view>
+
+    <!-- 标签 -->
+    <view class="tags-row" wx:if="{{block.content.tags && block.content.tags.length > 0}}">
+      <text class="tag" wx:for="{{block.content.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+  </view>
+</view>
+

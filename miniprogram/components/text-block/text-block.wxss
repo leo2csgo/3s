@@ -1,0 +1,119 @@
+/* Text Block 样式 - 复用原有贴士样式 */
+
+.text-block {
+  position: relative;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  transition: all 0.2s ease;
+}
+
+.text-block.edit-mode {
+  cursor: pointer;
+}
+
+/* 普通样式 */
+.text-block.style-normal {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* 提示样式 - 暖黄色便签纸效果 */
+.text-block.style-tip {
+  background: #fffcf5;
+  border: 1px solid #f0e6d2;
+  border-left: 4rpx solid #f5a623;
+}
+
+/* 警告样式 */
+.text-block.style-warning {
+  background: #fff5f5;
+  border: 1px solid #ffd6d6;
+  border-left: 4rpx solid #e74c3c;
+}
+
+/* 编辑中状态 */
+.text-block.editing {
+  border-color: rgba(161, 140, 209, 0.5);
+  box-shadow: 0 0 0 4rpx rgba(161, 140, 209, 0.1);
+}
+
+/* 删除按钮 */
+.delete-btn {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 44rpx;
+  height: 44rpx;
+  background: #e74c3c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(231, 76, 60, 0.3);
+  z-index: 10;
+}
+
+.delete-icon {
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* 样式图标 */
+.style-icon {
+  position: absolute;
+  top: 12rpx;
+  left: 12rpx;
+  font-size: 28rpx;
+}
+
+/* 文本内容区 */
+.text-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-value {
+  font-size: 28rpx;
+  color: #555;
+  line-height: 1.7;
+  word-break: break-all;
+}
+
+.style-tip .text-value {
+  color: #8a6d3b;
+}
+
+.style-warning .text-value {
+  color: #a94442;
+}
+
+/* 编辑提示 */
+.edit-hint {
+  font-size: 22rpx;
+  color: #aaa;
+  margin-top: 8rpx;
+  font-style: italic;
+}
+
+/* 输入框 */
+.text-input {
+  width: 100%;
+  font-size: 28rpx;
+  color: #555;
+  line-height: 1.7;
+  min-height: 80rpx;
+  padding: 0;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.style-tip .text-input {
+  color: #8a6d3b;
+}
+
+.style-warning .text-input {
+  color: #a94442;
+}
+

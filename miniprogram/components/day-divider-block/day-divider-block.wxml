@@ -1,0 +1,20 @@
+<!--
+  Day Divider Block - 日期分隔符组件
+  复用原有的 Day 标题样式
+-->
+<view class="day-divider">
+  <!-- Day 徽章 -->
+  <view class="day-badge">
+    <text class="day-label">{{block.content.label || 'Day ' + block.content.dayIndex}}</text>
+  </view>
+
+  <!-- 日期 (可选) -->
+  <text class="day-date" wx:if="{{block.content.date}}">{{block.content.date}}</text>
+
+  <!-- 主题 (可选) -->
+  <text class="day-theme" wx:if="{{block.content.theme}}">· {{block.content.theme}}</text>
+
+  <!-- 分隔线 -->
+  <view class="divider-line"></view>
+</view>
+

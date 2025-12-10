@@ -1,10 +1,42 @@
 {
-  "pages": ["pages/index/index"],
+  "pages": [
+    "pages/discover/discover",
+    "pages/trips/trips",
+    "pages/profile/profile",
+    "pages/trip-detail/trip-detail",
+    "pages/index/index"
+  ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#4A90E2",
-    "navigationBarTitleText": "3秒出卡",
+    "navigationBarBackgroundColor": "#a18cd1",
+    "navigationBarTitleText": "路书",
     "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#a18cd1",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/discover/discover",
+        "text": "发现",
+        "iconPath": "images/tab-discover.png",
+        "selectedIconPath": "images/tab-discover-active.png"
+      },
+      {
+        "pagePath": "pages/trips/trips",
+        "text": "行程",
+        "iconPath": "images/tab-trips.png",
+        "selectedIconPath": "images/tab-trips-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tab-profile.png",
+        "selectedIconPath": "images/tab-profile-active.png"
+      }
+    ]
   },
   "sitemapLocation": "sitemap.json",
   "cloud": true

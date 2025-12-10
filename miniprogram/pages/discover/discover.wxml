@@ -1,0 +1,100 @@
+<!--pages/discover/discover.wxml-->
+<view class="container">
+  <!-- 头部区域 -->
+  <view class="header">
+    <text class="title">✈️ 开始你的旅程</text>
+    <text class="subtitle">AI 智能规划，3秒生成专属路书</text>
+  </view>
+
+  <!-- 新建路书卡片 -->
+  <view class="create-section">
+    <!-- AI 快速生成 -->
+    <view class="create-card main-card" bindtap="goToAIGenerate">
+      <view class="card-icon">🤖</view>
+      <view class="card-content">
+        <text class="card-title">AI 一键生成</text>
+        <text class="card-desc">告诉我目的地，3秒出路书</text>
+      </view>
+      <view class="card-arrow">→</view>
+    </view>
+
+    <!-- 空白创建 -->
+    <view class="create-card" bindtap="createBlankTrip">
+      <view class="card-icon">📝</view>
+      <view class="card-content">
+        <text class="card-title">空白路书</text>
+        <text class="card-desc">从零开始，自由规划</text>
+      </view>
+      <view class="card-arrow">→</view>
+    </view>
+  </view>
+
+  <!-- 选择器区域（AI 生成参数） -->
+  <view class="selector-section" wx:if="{{showAIPanel}}">
+    <view class="section-title">🎯 快速设置</view>
+    
+    <!-- 城市选择 -->
+    <view class="selector-item">
+      <text class="label">目的地</text>
+      <picker mode="selector" range="{{cities}}" value="{{cityIndex}}" bindchange="onCityChange">
+        <view class="picker-value">{{cities[cityIndex]}} ▾</view>
+      </picker>
+    </view>
+
+    <!-- 天数选择 -->
+    <view class="selector-item">
+      <text class="label">旅行天数</text>
+      <picker mode="selector" range="{{days}}" value="{{dayIndex}}" bindchange="onDayChange">
+        <view class="picker-value">{{days[dayIndex]}}天 ▾</view>
+      </picker>
+    </view>
+
+    <!-- 出行风格 -->
+    <view class="selector-item">
+      <text class="label">出行风格</text>
+      <picker mode="selector" range="{{intents}}" value="{{intentIndex}}" bindchange="onIntentChange">
+        <view class="picker-value">{{intents[intentIndex]}} ▾</view>
+      </picker>
+    </view>
+
+    <!-- 生成按钮 -->
+    <button class="generate-btn" bindtap="generateTrip" loading="{{loading}}" disabled="{{loading}}">
+      {{loading ? '生成中...' : '✨ 立即生成路书'}}
+    </button>
+  </view>
+
+  <!-- 推荐模版区域 -->
+  <view class="template-section">
+    <view class="section-header">
+      <text class="section-title">🔥 热门路书模版</text>
+      <text class="section-more" bindtap="viewAllTemplates">更多 →</text>
+    </view>
+
+    <scroll-view class="template-scroll" scroll-x="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="template-list">
+        <view class="template-card" wx:for="{{templates}}" wx:key="id" bindtap="useTemplate" data-id="{{item.id}}">
+          <image class="template-cover" src="{{item.cover}}" mode="aspectFill"></image>
+          <view class="template-info">
+            <text class="template-title">{{item.title}}</text>
+            <text class="template-meta">{{item.city}} · {{item.days}}天</text>
+            <view class="template-tags">
+              <text class="tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 分类入口 -->
+  <view class="category-section">
+    <view class="section-title">🏷️ 分类探索</view>
+    <view class="category-grid">
+      <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="goToCategory" data-id="{{item.id}}">
+        <text class="category-icon">{{item.icon}}</text>
+        <text class="category-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+</view>
+

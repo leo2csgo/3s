@@ -1,0 +1,133 @@
+<!--pages/trip-detail/trip-detail.wxml-->
+<view class="container" style="background: {{currentBg}}">
+  <!-- 自定义导航栏 -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="nav-back" bindtap="goBack">
+        <text class="back-icon">←</text>
+      </view>
+      <text class="nav-title">{{tripInfo.title || '路书详情'}}</text>
+      <view class="nav-actions">
+        <text class="nav-icon" bindtap="showMoreActions">⋮</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 头部信息 -->
+  <view class="header-card" style="margin-top: {{statusBarHeight + 44}}px">
+    <view class="header-content">
+      <text class="trip-title">{{tripInfo.title || '我的路书'}}</text>
+      <view class="trip-meta">
+        <text class="meta-tag">📍 {{tripInfo.city || '未知城市'}}</text>
+        <text class="meta-tag">📅 {{tripInfo.days || 0}}天</text>
+        <text class="meta-tag" wx:if="{{tripInfo.meta.totalCost}}">💰 ¥{{tripInfo.meta.totalCost}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Block 列表区域 -->
+  <scroll-view class="block-scroll" scroll-y="{{true}}" enhanced="{{true}}">
+    <view class="block-list">
+      <!-- 遍历 blocks -->
+      <view class="block-wrapper" wx:for="{{blocks}}" wx:key="id">
+        <!-- 编辑模式下显示插入点 -->
+        <view class="insert-point" wx:if="{{editMode && index === 0}}" bindtap="insertBlock" data-before-id="{{item.id}}">
+          <text class="insert-icon">+</text>
+        </view>
+
+        <!-- Block 渲染 -->
+        <block-renderer
+          block="{{item}}"
+          editMode="{{editMode}}"
+          bind:navigate="onBlockNavigate"
+          bind:delete="onBlockDelete"
+          bind:edit="onBlockEdit"
+          bind:textchange="onBlockTextChange"
+        />
+
+        <!-- 编辑模式下显示插入点 -->
+        <view class="insert-point" wx:if="{{editMode}}" bindtap="insertBlock" data-after-id="{{item.id}}">
+          <text class="insert-icon">+</text>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-blocks" wx:if="{{blocks.length === 0}}">
+        <text class="empty-icon">📝</text>
+        <text class="empty-text">还没有内容</text>
+        <text class="empty-hint">点击下方按钮开始规划</text>
+      </view>
+    </view>
+
+    <!-- 底部占位 -->
+    <view class="bottom-spacer"></view>
+  </scroll-view>
+
+  <!-- 底部工具栏 - 浏览模式 -->
+  <view class="toolbar view-toolbar" wx:if="{{!editMode}}">
+    <view class="toolbar-btn" bindtap="openMapView">
+      <text class="toolbar-icon">🗺️</text>
+      <text class="toolbar-label">地图</text>
+    </view>
+    <view class="toolbar-btn" bindtap="shareTrip">
+      <text class="toolbar-icon">📤</text>
+      <text class="toolbar-label">分享</text>
+    </view>
+    <view class="toolbar-btn primary" bindtap="enterEditMode">
+      <text class="toolbar-icon">✏️</text>
+      <text class="toolbar-label">编辑</text>
+    </view>
+  </view>
+
+  <!-- 底部工具栏 - 编辑模式 -->
+  <view class="toolbar edit-toolbar" wx:if="{{editMode}}">
+    <view class="toolbar-btn" bindtap="showAddMenu">
+      <text class="toolbar-icon">➕</text>
+      <text class="toolbar-label">添加</text>
+    </view>
+    <view class="toolbar-btn" bindtap="aiOptimize">
+      <text class="toolbar-icon">✨</text>
+      <text class="toolbar-label">AI优化</text>
+    </view>
+    <view class="toolbar-btn primary" bindtap="exitEditMode">
+      <text class="toolbar-icon">✓</text>
+      <text class="toolbar-label">完成</text>
+    </view>
+  </view>
+
+  <!-- 添加模块半屏菜单 -->
+  <view class="add-drawer {{showAddDrawer ? 'show' : ''}}" catchtap="hideAddDrawer">
+    <view class="drawer-content" catchtap="stopPropagation">
+      <view class="drawer-header">
+        <text class="drawer-title">添加模块</text>
+        <text class="drawer-close" bindtap="hideAddDrawer">×</text>
+      </view>
+      <view class="drawer-grid">
+        <view class="drawer-item" bindtap="addBlock" data-type="poi">
+          <text class="item-icon">📍</text>
+          <text class="item-name">地点</text>
+        </view>
+        <view class="drawer-item" bindtap="addBlock" data-type="text">
+          <text class="item-icon">📝</text>
+          <text class="item-name">备注</text>
+        </view>
+        <view class="drawer-item" bindtap="addBlock" data-type="transport">
+          <text class="item-icon">🚗</text>
+          <text class="item-name">交通</text>
+        </view>
+        <view class="drawer-item" bindtap="addBlock" data-type="image">
+          <text class="item-icon">📷</text>
+          <text class="item-name">图片</text>
+        </view>
+        <view class="drawer-item" bindtap="addBlock" data-type="day-divider">
+          <text class="item-icon">📅</text>
+          <text class="item-name">日期</text>
+        </view>
+        <view class="drawer-item" bindtap="addFromFavorites">
+          <text class="item-icon">⭐</text>
+          <text class="item-name">收藏</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

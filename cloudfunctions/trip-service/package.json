@@ -1,0 +1,10 @@
+{
+  "name": "trip-service",
+  "version": "1.0.0",
+  "description": "Trip CRUD cloud function",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "^3.0.0"
+  }
+}
+

@@ -9,7 +9,7 @@
   <view class="selector-section">
     <!-- 城市选择 -->
     <view class="selector-item">
-      <text class="label">选择城市</text>
+      <text class="label">📍 选择城市</text>
       <picker mode="selector" range="{{cities}}" value="{{cityIndex}}" bindchange="onCityChange">
         <view class="picker">
           {{cities[cityIndex]}}
@@ -19,7 +19,7 @@
 
     <!-- 天数选择 -->
     <view class="selector-item">
-      <text class="label">出行天数</text>
+      <text class="label">📅 出行天数</text>
       <picker mode="selector" range="{{days}}" value="{{dayIndex}}" bindchange="onDayChange">
         <view class="picker">
           {{days[dayIndex]}}天
@@ -29,7 +29,7 @@
 
     <!-- 出行目的 -->
     <view class="selector-item">
-      <text class="label">出行目的</text>
+      <text class="label">🎯 出行目的</text>
       <view class="intent-tags">
         <view 
           wx:for="{{intents}}" 
@@ -48,57 +48,148 @@
     {{loading ? '正在为您生成...' : '3秒出卡'}}
   </button>
 
-  <!-- 卡片展示区 -->
-  <view class="card-display" wx:if="{{cardContent}}">
-    <!-- 切换按钮 -->
-    <view class="view-toggle">
-      <view class="toggle-btn {{viewMode === 'text' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="text">
-        📝 文字版
+  <!-- 卡片展示区 - 居中容器 -->
+  <view class="card-display-container" wx:if="{{planData}}">
+
+    <!-- 编辑模式：DOM结构 -->
+    <view class="card-display" id="card-dom" wx:if="{{!generatedImagePath}}">
+      <!-- 背景层 -->
+      <image class="poster-bg" src="{{currentBgImage}}" mode="aspectFill" wx:if="{{currentBgImage}}"></image>
+      <view class="poster-bg-gradient" wx:else style="background: linear-gradient(135deg, {{backgrounds[bgIndex].color1}} 0%, {{backgrounds[bgIndex].color2}} 100%);"></view>
+
+      <!-- 内容层 - 毛玻璃效果 -->
+      <view class="poster-content-wrapper">
+        <!-- 海报头部 -->
+        <view class="poster-header">
+          <text class="poster-title">✈️ {{cities[cityIndex]}} · {{days[dayIndex]}}天之旅</text>
+          <text class="poster-subtitle">{{intents[intentIndex]}} · 我的专属行程</text>
+        </view>
+
+        <!-- 行程列表 -->
+        <view class="itinerary-list">
+          <block wx:for="{{planData.days}}" wx:key="day" wx:for-item="dayItem" wx:for-index="dIndex">
+            <!-- 日期标题 -->
+            <view class="day-header">
+              <view class="day-badge">Day {{dayItem.day}}</view>
+              <text class="day-date">{{dayItem.date}}</text>
+            </view>
+
+            <!-- 活动列表 -->
+            <view class="activity-item" wx:for="{{dayItem.activities}}" wx:key="name" wx:for-item="act" wx:for-index="aIndex">
+              <view class="activity-time-row">
+                <text class="time-tag">{{act.time || '全天'}}</text>
+                <view class="activity-cost">💰 ¥{{act.cost}}</view>
+              </view>
+
+              <view class="activity-main">
+                <view class="activity-name-row">
+                  <text class="activity-name">{{act.name}}</text>
+                  <view class="location-btn" bindtap="openMap" data-location="{{act.name}}" data-address="{{act.description}}">
+                    <view class="nav-icon-bg">
+                      <text class="loc-icon">↗</text>
+                    </view>
+                    <text class="loc-text">去这里</text>
+                  </view>
+                </view>
+
+                <textarea
+                  class="activity-desc-input"
+                  auto-height
+                  maxlength="200"
+                  placeholder="点击编辑活动描述..."
+                  value="{{act.description}}"
+                  data-day-index="{{dIndex}}"
+                  data-act-index="{{aIndex}}"
+                  bindinput="onActivityEdit"
+                ></textarea>
+
+                <view class="activity-duration">⏱ {{act.duration}}小时</view>
+              </view>
+            </view>
+          </block>
+        </view>
+
+        <!-- 行前准备清单 -->
+        <view class="section-box checklist-section" wx:if="{{checkList.length > 0}}">
+          <view class="section-title">
+            <text class="section-icon">🎒</text>
+            <text>行前准备 · {{intents[intentIndex]}}版</text>
+          </view>
+          <view class="checklist-grid">
+            <view
+              class="checklist-item {{item.checked ? 'checked' : ''}}"
+              wx:for="{{checkList}}"
+              wx:key="text"
+              bindtap="toggleCheck"
+              data-index="{{index}}"
+            >
+              <view class="checkbox">
+                <text wx:if="{{item.checked}}">✓</text>
+              </view>
+              <text class="check-text">{{item.text}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 旅行小贴士 -->
+        <view class="section-box tips-section" wx:if="{{travelTips}}">
+          <view class="section-title">
+            <text class="section-icon">💡</text>
+            <text>旅行小贴士</text>
+          </view>
+          <view class="tips-content">
+            <text>{{travelTips}}</text>
+          </view>
+        </view>
+
+        <!-- 海报底部 - 嵌入二维码 -->
+        <view class="poster-footer">
+          <view class="qr-section">
+            <view class="qr-desc">
+              <text class="qr-title">扫码获取同款行程</text>
+              <text class="qr-sub">AI 智能定制 · 3秒出卡</text>
+            </view>
+            <view class="qr-container">
+              <image class="qr-image" src="{{qrCodeUrl || '/images/3s.jpg'}}" mode="aspectFit"></image>
+            </view>
+          </view>
+          <text class="total-cost">💰 预计总费用：¥{{planData.total_cost}}</text>
+        </view>
       </view>
-      <view class="toggle-btn {{viewMode === 'image' ? 'active' : ''}}" bindtap="switchViewMode" data-mode="image">
-        🖼️ 图片版
-      </view>
-      <view wx:if="{{viewMode === 'image'}}" class="toggle-btn theme-btn" bindtap="showThemeSelector">
-        🎨 主题
-      </view>
-      <view wx:if="{{viewMode === 'image'}}" class="toggle-btn theme-btn" bindtap="showBgSelector">
-        🖼️ 背景
+
+      <!-- 编辑模式悬浮按钮 -->
+      <view class="action-buttons-floating">
+        <button class="action-btn-float" bindtap="generatePoster">📸 生成分享海报</button>
+        <button class="action-btn-float theme-btn" bindtap="showBgSelector">🎨 换背景</button>
+        <button class="action-btn-float" bindtap="regenerate">🔄 重新生成</button>
       </view>
     </view>
 
-    <!-- 文字卡片 -->
-    <view class="card-content" wx:if="{{viewMode === 'text'}}">
-      <text class="card-text">{{cardContent}}</text>
-    </view>
-
-    <!-- 图片卡片 -->
-    <view class="card-image-wrapper" wx:if="{{viewMode === 'image'}}">
+    <!-- 图片模式：最终海报展示 -->
+    <view class="result-image-wrapper" wx:if="{{generatedImagePath}}">
       <image
-        wx:if="{{cardImagePath}}"
-        class="card-image"
-        src="{{cardImagePath}}"
+        src="{{generatedImagePath}}"
+        class="final-poster-image"
         mode="widthFix"
-        bindtap="showFullscreenImage"></image>
-      <view wx:else class="generating-tip">正在生成图片...</view>
+        show-menu-by-longpress="{{true}}"
+        bindlongpress="showImageMenu"
+      ></image>
+
+      <view class="image-actions">
+        <button class="re-edit-btn" bindtap="backToEdit">✏️ 修改内容</button>
+        <button class="save-btn" bindtap="saveToAlbum">💾 保存到相册</button>
+      </view>
+
+      <view class="share-tip">
+        <text>💡 长按图片可直接分享到微信</text>
+        <text>扫描图中二维码，朋友也能获得同款行程</text>
+      </view>
     </view>
 
-    <!-- 操作按钮 -->
-    <view class="action-buttons">
-      <button wx:if="{{viewMode === 'image'}}" class="action-btn" bindtap="saveToAlbum">💾 保存到相册</button>
-      <button wx:if="{{viewMode === 'text'}}" class="action-btn" bindtap="copyText">📋 复制文本</button>
-      <button class="action-btn" open-type="share">📤 分享给好友</button>
-      <button class="action-btn" bindtap="regenerate">🔄 重新生成</button>
-    </view>
   </view>
 
   <!-- 隐藏的Canvas用于绘制图片 -->
   <canvas canvas-id="cardCanvas" id="cardCanvas" class="hidden-canvas" style="width: 750px; height: {{canvasHeight || 1334}}px;"></canvas>
-
-  <!-- 全屏显示图片 -->
-  <view class="fullscreen-overlay" wx:if="{{showFullscreen}}" bindtap="closeFullscreen">
-    <image class="fullscreen-image" src="{{cardImagePath}}" mode="widthFix" show-menu-by-longpress></image>
-    <view class="fullscreen-tip">点击关闭 | 长按保存</view>
-  </view>
 
   <!-- 主题选择器 -->
   <view class="theme-selector-overlay" wx:if="{{showThemeSelector}}" bindtap="hideThemeSelector">
@@ -125,58 +216,58 @@
   <!-- 背景选择器 -->
   <view class="theme-selector-overlay" wx:if="{{showBgSelector}}" bindtap="hideBgSelector">
     <view class="theme-selector" catchtap="{{null}}">
-      <view class="theme-selector-title">选择背景</view>
+      <view class="theme-selector-title">选择卡片背景</view>
       <view class="theme-list-new">
-        <!-- 渐变 -->
+        <!-- 渐变背景 -->
         <view
           class="theme-card {{bgIndex === 0 ? 'active' : ''}}"
           bindtap="selectBackground"
           data-index="0">
           <view class="theme-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></view>
           <view class="theme-info">
-            <text class="theme-name-new">渐变</text>
+            <text class="theme-name-new">紫梦渐变</text>
             <view wx:if="{{bgIndex === 0}}" class="theme-check-new">✓ 使用中</view>
           </view>
         </view>
-        <!-- 星空 -->
+        <!-- 星空背景 -->
         <view
           class="theme-card {{bgIndex === 1 ? 'active' : ''}}"
           bindtap="selectBackground"
           data-index="1">
           <view class="theme-gradient" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);"></view>
           <view class="theme-info">
-            <text class="theme-name-new">星空</text>
+            <text class="theme-name-new">深邃星空</text>
             <view wx:if="{{bgIndex === 1}}" class="theme-check-new">✓ 使用中</view>
           </view>
         </view>
-        <!-- 海洋 -->
+        <!-- 海洋背景 -->
         <view
           class="theme-card {{bgIndex === 2 ? 'active' : ''}}"
           bindtap="selectBackground"
           data-index="2">
           <view class="theme-gradient" style="background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);"></view>
           <view class="theme-info">
-            <text class="theme-name-new">海洋</text>
+            <text class="theme-name-new">深海蓝调</text>
             <view wx:if="{{bgIndex === 2}}" class="theme-check-new">✓ 使用中</view>
           </view>
         </view>
-        <!-- 森林 -->
+        <!-- 森林背景 -->
         <view
           class="theme-card {{bgIndex === 3 ? 'active' : ''}}"
           bindtap="selectBackground"
           data-index="3">
           <view class="theme-gradient" style="background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);"></view>
           <view class="theme-info">
-            <text class="theme-name-new">森林</text>
+            <text class="theme-name-new">翠绿森林</text>
             <view wx:if="{{bgIndex === 3}}" class="theme-check-new">✓ 使用中</view>
           </view>
         </view>
-        <!-- 自定义 -->
+        <!-- 自定义图片 -->
         <view
           class="theme-card {{bgIndex === 4 ? 'active' : ''}}"
           bindtap="selectBackground"
           data-index="4">
-          <view class="theme-gradient" style="background: #f5f7fa; display: flex; align-items: center; justify-content: center; font-size: 48rpx;">
+          <view class="theme-gradient" style="background: rgba(245, 247, 250, 0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; font-size: 48rpx;">
             📷
           </view>
           <view class="theme-info">
@@ -186,6 +277,52 @@
         </view>
       </view>
       <button class="theme-close-btn" bindtap="hideBgSelector">关闭</button>
+    </view>
+  </view>
+
+  <!-- 调试信息面板（开发时使用） -->
+  <view class="debug-panel" wx:if="{{planData}}">
+    <view class="debug-title">🔍 调试信息</view>
+    <view class="debug-item">选择: {{cities[cityIndex]}} {{days[dayIndex]}}天 {{intents[intentIndex]}}</view>
+    <view class="debug-item">生成: {{planData.days.length}}天行程，总费用¥{{planData.total_cost}}</view>
+    <view class="debug-item">活动分布:
+      <text wx:for="{{planData.days}}" wx:key="day">Day{{item.day}}({{item.activities.length}}个) </text>
+    </view>
+    <view class="debug-item" wx:if="{{blocks.length > 0}}">Blocks: {{blocks.length}}个 | 编辑模式: {{blockEditMode ? '开' : '关'}}</view>
+  </view>
+
+  <!-- 悬浮操作栏 (FAB) - 仅在生成行程后显示 -->
+  <view class="fab-container" wx:if="{{planData && !generatedImagePath}}">
+    <!-- 编辑模式切换按钮 -->
+    <view class="fab-btn fab-edit {{blockEditMode ? 'active' : ''}}" bindtap="toggleEditMode">
+      <text class="fab-icon">{{blockEditMode ? '✓' : '✏️'}}</text>
+      <text class="fab-label">{{blockEditMode ? '完成' : '编辑'}}</text>
+    </view>
+
+    <!-- 添加文本按钮 -->
+    <view class="fab-btn fab-text" bindtap="onAddTextBlock" wx:if="{{blockEditMode}}">
+      <text class="fab-icon">📝</text>
+      <text class="fab-label">添加备注</text>
+    </view>
+
+    <!-- 添加地点按钮 -->
+    <view class="fab-btn fab-poi" bindtap="onAddPoiBlock" wx:if="{{blockEditMode}}">
+      <text class="fab-icon">📍</text>
+      <text class="fab-label">添加地点</text>
+    </view>
+
+    <!-- 分隔线 -->
+    <view class="fab-divider" wx:if="{{blockEditMode}}"></view>
+
+    <!-- 原有功能按钮 -->
+    <view class="fab-btn fab-theme" bindtap="showBgSelector">
+      <text class="fab-icon">🎨</text>
+      <text class="fab-label">换背景</text>
+    </view>
+
+    <view class="fab-btn fab-poster" bindtap="generatePoster">
+      <text class="fab-icon">📸</text>
+      <text class="fab-label">生成海报</text>
     </view>
   </view>
 </view>

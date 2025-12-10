@@ -1,9 +1,11 @@
 {
+  "navigationBarTitleText": "路书详情",
+  "navigationBarBackgroundColor": "#a18cd1",
+  "navigationStyle": "custom",
   "usingComponents": {
     "block-renderer": "../../components/block-renderer/block-renderer",
     "poi-block": "../../components/poi-block/poi-block",
     "text-block": "../../components/text-block/text-block",
     "day-divider-block": "../../components/day-divider-block/day-divider-block"
-  },
-  "navigationBarTitleText": "3秒出卡"
+  }
 }

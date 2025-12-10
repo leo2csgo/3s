@@ -1,0 +1,37 @@
+<!--
+  Text Block - 文本块组件
+  复用原有贴士样式，支持点击切换编辑模式
+-->
+<view class="text-block {{styleClass}} {{isEditing ? 'editing' : ''}} {{editMode ? 'edit-mode' : ''}}">
+  <!-- 删除按钮 (仅编辑模式可见) -->
+  <view class="delete-btn" wx:if="{{editMode}}" catchtap="onDeleteTap">
+    <text class="delete-icon">×</text>
+  </view>
+
+  <!-- 样式图标 -->
+  <view class="style-icon" wx:if="{{block.content.style !== 'normal'}}">
+    <text wx:if="{{block.content.style === 'tip'}}">💡</text>
+    <text wx:elif="{{block.content.style === 'warning'}}">⚠️</text>
+  </view>
+
+  <!-- 编辑模式: textarea -->
+  <textarea
+    wx:if="{{isEditing}}"
+    class="text-input"
+    auto-height
+    focus="{{isEditing}}"
+    maxlength="500"
+    placeholder="输入文本内容..."
+    value="{{block.content.text}}"
+    bindinput="onInput"
+    bindblur="onBlur"
+    bindconfirm="onConfirm"
+  />
+
+  <!-- 预览模式: 点击进入编辑 -->
+  <view wx:else class="text-content" bindtap="onTap">
+    <text class="text-value">{{block.content.text || '点击添加文本...'}}</text>
+    <text class="edit-hint" wx:if="{{editMode}}">点击编辑</text>
+  </view>
+</view>
+

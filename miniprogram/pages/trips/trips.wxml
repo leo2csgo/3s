@@ -1,0 +1,73 @@
+<!--pages/trips/trips.wxml-->
+<view class="container">
+  <!-- 状态筛选 -->
+  <view class="status-tabs">
+    <view class="tab {{currentStatus === 'all' ? 'active' : ''}}" bindtap="switchStatus" data-status="all">
+      <text>全部</text>
+      <text class="count">{{tripCounts.all}}</text>
+    </view>
+    <view class="tab {{currentStatus === 'planning' ? 'active' : ''}}" bindtap="switchStatus" data-status="planning">
+      <text>规划中</text>
+      <text class="count">{{tripCounts.planning}}</text>
+    </view>
+    <view class="tab {{currentStatus === 'ongoing' ? 'active' : ''}}" bindtap="switchStatus" data-status="ongoing">
+      <text>进行中</text>
+      <text class="count">{{tripCounts.ongoing}}</text>
+    </view>
+    <view class="tab {{currentStatus === 'completed' ? 'active' : ''}}" bindtap="switchStatus" data-status="completed">
+      <text>已完成</text>
+      <text class="count">{{tripCounts.completed}}</text>
+    </view>
+  </view>
+
+  <!-- 行程列表 -->
+  <view class="trip-list" wx:if="{{filteredTrips.length > 0}}">
+    <view 
+      class="trip-card {{item.status}}" 
+      wx:for="{{filteredTrips}}" 
+      wx:key="id"
+      bindtap="goToDetail"
+      data-id="{{item._id}}"
+    >
+      <!-- 封面图 -->
+      <image class="trip-cover" src="{{item.cover || '/images/3s.jpg'}}" mode="aspectFill"></image>
+      
+      <!-- 状态徽章 -->
+      <view class="status-badge {{item.status}}">
+        <text wx:if="{{item.status === 'planning'}}">📝 规划中</text>
+        <text wx:if="{{item.status === 'ongoing'}}">🚀 进行中</text>
+        <text wx:if="{{item.status === 'completed'}}">✅ 已完成</text>
+      </view>
+
+      <!-- 信息区域 -->
+      <view class="trip-info">
+        <text class="trip-title">{{item.title}}</text>
+        <view class="trip-meta">
+          <text class="meta-item">📍 {{item.city}}</text>
+          <text class="meta-item">📅 {{item.days}}天</text>
+          <text class="meta-item" wx:if="{{item.meta && item.meta.totalCost}}">💰 ¥{{item.meta.totalCost}}</text>
+        </view>
+        <text class="trip-date">创建于 {{item.createdAt}}</text>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="trip-actions" catchtap="showActions" data-id="{{item.id}}">
+        <text class="action-icon">⋮</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredTrips.length === 0 && !loading}}">
+    <text class="empty-icon">🗺️</text>
+    <text class="empty-text">还没有行程</text>
+    <text class="empty-hint">去「发现」页面创建你的第一份路书吧</text>
+    <button class="empty-btn" bindtap="goToDiscover">去创建</button>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>
+

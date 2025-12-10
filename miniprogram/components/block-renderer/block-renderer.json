@@ -1,0 +1,9 @@
+{
+  "component": true,
+  "usingComponents": {
+    "poi-block": "../poi-block/poi-block",
+    "text-block": "../text-block/text-block",
+    "day-divider-block": "../day-divider-block/day-divider-block"
+  }
+}
+

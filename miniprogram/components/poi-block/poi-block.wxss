@@ -1,0 +1,168 @@
+/* POI Block 样式 - 复用原有毛玻璃活动卡片样式 */
+
+.poi-block {
+  position: relative;
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.poi-block.edit-mode {
+  border-color: rgba(161, 140, 209, 0.3);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+/* 删除按钮 */
+.delete-btn {
+  position: absolute;
+  top: -12rpx;
+  right: -12rpx;
+  width: 48rpx;
+  height: 48rpx;
+  background: #e74c3c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(231, 76, 60, 0.3);
+  z-index: 10;
+}
+
+.delete-icon {
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* 时间和费用行 */
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.time-tag {
+  font-size: 24rpx;
+  color: #888;
+  background: rgba(136, 136, 136, 0.1);
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+}
+
+.cost-tag {
+  font-size: 24rpx;
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+/* 名称行 */
+.name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.poi-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+/* 导航按钮 */
+.nav-btn {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 6rpx 12rpx 6rpx 6rpx;
+  border-radius: 30rpx;
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(64, 158, 255, 0.2);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.nav-btn:active {
+  transform: scale(0.95);
+  background: rgba(64, 158, 255, 0.1);
+}
+
+.nav-icon-bg {
+  width: 40rpx;
+  height: 40rpx;
+  background: #007aff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8rpx;
+}
+
+.nav-icon {
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: bold;
+}
+
+.nav-text {
+  font-size: 24rpx;
+  color: #007aff;
+  font-weight: 500;
+}
+
+/* 描述区域 */
+.desc-wrapper {
+  margin-bottom: 8rpx;
+}
+
+.desc-text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+.desc-input {
+  width: 100%;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.6;
+  min-height: 60rpx;
+  padding: 12rpx;
+  background: rgba(245, 247, 250, 0.8);
+  border-radius: 12rpx;
+  border: 1px solid rgba(161, 140, 209, 0.2);
+  box-sizing: border-box;
+}
+
+/* 时长 */
+.duration-row {
+  margin-top: 8rpx;
+}
+
+.duration-text {
+  font-size: 24rpx;
+  color: #888;
+}
+
+/* 标签 */
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.tag {
+  font-size: 22rpx;
+  color: #a18cd1;
+  background: rgba(161, 140, 209, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
