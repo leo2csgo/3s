@@ -10,22 +10,24 @@
   />
 
   <!-- POI Block -->
-  <poi-block 
+  <poi-block
     wx:elif="{{block.type === 'poi'}}"
     block="{{block}}"
     editMode="{{editMode}}"
     bind:navigate="onNavigate"
     bind:delete="onDelete"
     bind:edit="onEdit"
+    bind:update="onUpdate"
   />
 
   <!-- Text Block -->
-  <text-block 
+  <text-block
     wx:elif="{{block.type === 'text'}}"
     block="{{block}}"
     editMode="{{editMode}}"
     bind:change="onTextChange"
     bind:delete="onDelete"
+    bind:update="onUpdate"
   />
 
   <!-- Transport Block (暂用简单样式) -->

@@ -4,6 +4,7 @@
     "pages/trips/trips",
     "pages/profile/profile",
     "pages/trip-detail/trip-detail",
+    "pages/map-view/index",
     "pages/index/index"
   ],
   "window": {

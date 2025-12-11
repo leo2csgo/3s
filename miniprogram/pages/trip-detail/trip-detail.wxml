@@ -1,7 +1,7 @@
 <!--pages/trip-detail/trip-detail.wxml-->
-<view class="container" style="background: {{currentBg}}">
+<view class="container" style="background: {{currentBg}}" bindtap="cancelMove">
   <!-- 自定义导航栏 -->
-  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+  <view class="nav-bar {{scrollTop > 10 ? 'glass' : ''}}" style="padding-top: {{statusBarHeight}}px">
     <view class="nav-content">
       <view class="nav-back" bindtap="goBack">
         <text class="back-icon">←</text>
@@ -13,42 +13,90 @@
     </view>
   </view>
 
-  <!-- 头部信息 -->
-  <view class="header-card" style="margin-top: {{statusBarHeight + 44}}px">
-    <view class="header-content">
-      <text class="trip-title">{{tripInfo.title || '我的路书'}}</text>
-      <view class="trip-meta">
-        <text class="meta-tag">📍 {{tripInfo.city || '未知城市'}}</text>
-        <text class="meta-tag">📅 {{tripInfo.days || 0}}天</text>
-        <text class="meta-tag" wx:if="{{tripInfo.meta.totalCost}}">💰 ¥{{tripInfo.meta.totalCost}}</text>
+  <!-- Hero Section -->
+  <view class="hero-section" style="padding-top: {{statusBarHeight + 44}}px">
+    <view class="hero-bg" wx:if="{{tripInfo.coverUrl}}">
+      <image class="hero-cover" src="{{tripInfo.coverUrl}}" mode="aspectFill"></image>
+      <view class="hero-gradient"></view>
+    </view>
+    <view class="hero-content">
+      <view class="hero-badges">
+        <view class="badge">{{tripInfo.city || '未知城市'}}</view>
+        <view class="badge">{{tripInfo.days || 0}} Days</view>
+        <view class="badge">{{tripInfo.intent || '旅行'}}</view>
+      </view>
+      <text class="hero-title">{{tripInfo.title || '我的路书'}}</text>
+      <view class="hero-meta">
+        <text>预算 ¥{{tripInfo.meta.totalCost || 0}}</text>
+        <text class="dot">·</text>
+        <text>{{blocks.length}} 个节点</text>
+      </view>
+      <view class="route-overview" wx:if="{{dayOverview && dayOverview.length}}">
+        <block wx:for="{{dayOverview}}" wx:key="index">
+          <view class="route-chip">
+            <view class="route-dot" style="background: {{item.color}}"></view>
+            <text>D{{item.index}} · {{item.count}}</text>
+          </view>
+        </block>
       </view>
     </view>
   </view>
 
   <!-- Block 列表区域 -->
-  <scroll-view class="block-scroll" scroll-y="{{true}}" enhanced="{{true}}">
-    <view class="block-list">
+  <scroll-view class="block-scroll" scroll-y="{{true}}" enhanced="{{true}}" bindscroll="onScrollView">
+    <view class="timeline-canvas">
+      <view class="timeline-guide-line"></view>
+
       <!-- 遍历 blocks -->
-      <view class="block-wrapper" wx:for="{{blocks}}" wx:key="id">
-        <!-- 编辑模式下显示插入点 -->
-        <view class="insert-point" wx:if="{{editMode && index === 0}}" bindtap="insertBlock" data-before-id="{{item.id}}">
-          <text class="insert-icon">+</text>
+      <block wx:for="{{blocks}}" wx:key="id">
+        <!-- 移动目标区：在每个节点前（仅移动模式展示） -->
+        <view
+          class="move-target {{movingBlockId ? 'show' : ''}}"
+          wx:if="{{movingBlockId && movingBlockId !== item.id}}"
+          bindtap="onMoveTargetClick"
+          data-index="{{index}}"
+        >
+          <view class="move-indicator">👇 移动到这里</view>
         </view>
 
-        <!-- Block 渲染 -->
-        <block-renderer
-          block="{{item}}"
-          editMode="{{editMode}}"
-          bind:navigate="onBlockNavigate"
-          bind:delete="onBlockDelete"
-          bind:edit="onBlockEdit"
-          bind:textchange="onBlockTextChange"
-        />
-
-        <!-- 编辑模式下显示插入点 -->
-        <view class="insert-point" wx:if="{{editMode}}" bindtap="insertBlock" data-after-id="{{item.id}}">
-          <text class="insert-icon">+</text>
+        <!-- 插入热区：在每个节点前（非移动模式） -->
+        <view class="insert-zone" wx:if="{{editMode && !movingBlockId}}" bindtap="onInsert" data-index="{{index}}">
+          <view class="plus-btn">+</view>
         </view>
+
+        <view class="timeline-node type-{{item.type}} {{movingBlockId === item.id ? 'moving' : ''}}" bindlongpress="onBlockLongPress" data-block-id="{{item.id}}">
+          <view class="node-left">
+            <view wx:if="{{item.type === 'day-divider'}}" class="dot-day">📅</view>
+            <view wx:elif="{{item.type === 'transport'}}" class="dot-trans">🚗</view>
+            <view wx:else class="dot-poi"></view>
+          </view>
+          <view class="node-body">
+            <block-renderer
+              block="{{item}}"
+              editMode="{{editMode}}"
+              bind:navigate="onBlockNavigate"
+              bind:delete="onBlockDelete"
+              bind:edit="onBlockEdit"
+              bind:textchange="onBlockTextChange"
+              bind:update="onBlockUpdate"
+            />
+          </view>
+        </view>
+      </block>
+
+      <!-- 尾部移动目标区（移动模式） -->
+      <view
+        class="move-target tail {{movingBlockId ? 'show' : ''}}"
+        wx:if="{{movingBlockId}}"
+        bindtap="onMoveTargetClick"
+        data-index="{{blocks.length}}"
+      >
+        <view class="move-indicator">👇 移动到末尾</view>
+      </view>
+
+      <!-- 末尾追加区（非移动模式） -->
+      <view class="append-zone" bindtap="onAppendBlock" wx:if="{{editMode && !movingBlockId}}">
+        <text>+ 添加行程节点</text>
       </view>
 
       <!-- 空状态 -->
@@ -57,41 +105,24 @@
         <text class="empty-text">还没有内容</text>
         <text class="empty-hint">点击下方按钮开始规划</text>
       </view>
-    </view>
 
-    <!-- 底部占位 -->
-    <view class="bottom-spacer"></view>
+      <view class="footer-spacer"></view>
+    </view>
   </scroll-view>
 
-  <!-- 底部工具栏 - 浏览模式 -->
-  <view class="toolbar view-toolbar" wx:if="{{!editMode}}">
-    <view class="toolbar-btn" bindtap="openMapView">
-      <text class="toolbar-icon">🗺️</text>
-      <text class="toolbar-label">地图</text>
+  <!-- 统一底部工具栏（Glass Bar） -->
+  <view class="bottom-toolbar glass-bar">
+    <view class="tool-btn" bindtap="toggleEditMode">
+      <text class="icon">{{editMode ? '✓' : '✎'}}</text>
+      <text>{{editMode ? '完成' : '编辑'}}</text>
     </view>
-    <view class="toolbar-btn" bindtap="shareTrip">
-      <text class="toolbar-icon">📤</text>
-      <text class="toolbar-label">分享</text>
+    <view class="tool-btn highlight" bindtap="openMapView">
+      <text class="icon">🗺️</text>
+      <text>地图</text>
     </view>
-    <view class="toolbar-btn primary" bindtap="enterEditMode">
-      <text class="toolbar-icon">✏️</text>
-      <text class="toolbar-label">编辑</text>
-    </view>
-  </view>
-
-  <!-- 底部工具栏 - 编辑模式 -->
-  <view class="toolbar edit-toolbar" wx:if="{{editMode}}">
-    <view class="toolbar-btn" bindtap="showAddMenu">
-      <text class="toolbar-icon">➕</text>
-      <text class="toolbar-label">添加</text>
-    </view>
-    <view class="toolbar-btn" bindtap="aiOptimize">
-      <text class="toolbar-icon">✨</text>
-      <text class="toolbar-label">AI优化</text>
-    </view>
-    <view class="toolbar-btn primary" bindtap="exitEditMode">
-      <text class="toolbar-icon">✓</text>
-      <text class="toolbar-label">完成</text>
+    <view class="tool-btn" bindtap="generatePoster">
+      <text class="icon">📤</text>
+      <text>分享</text>
     </view>
   </view>
 
@@ -130,4 +161,8 @@
       </view>
     </view>
   </view>
+
+  <!-- Hidden canvas for poster generation -->
+  <canvas canvas-id="posterCanvas" class="poster-canvas"></canvas>
+
 </view>

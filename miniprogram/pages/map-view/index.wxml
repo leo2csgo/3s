@@ -1,0 +1,33 @@
+<view class="map-page">
+  <map
+    id="tripMap"
+    class="map"
+    show-location
+    markers="{{markers}}"
+    polyline="{{polyline}}"
+    include-points="{{includePoints}}"
+    bindmarkertap="onMarkerTap"
+  ></map>
+
+  <!-- 日筛选（悬浮，横向滚动） -->
+  <scroll-view class="day-filter glass" scroll-x="true" enable-flex="true">
+    <view class="chip {{selectedDay==='all' ? 'active' : ''}}" data-day="all" bindtap="onDayChipTap">全部</view>
+    <block wx:for="{{days}}" wx:key="index">
+      <view class="chip {{selectedDay===item.index ? 'active' : ''}}" data-day="{{item.index}}" bindtap="onDayChipTap"
+        style="background: {{selectedDay===item.index ? item.color : 'rgba(0,0,0,0.04)'}}; color: {{selectedDay===item.index ? '#fff' : '#333'}}">
+        D{{item.index}} · {{item.count}}
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- 悬浮信息卡片 -->
+  <view class="floating-card glass" wx:if="{{activeMarker}}">
+    <view class="card-title">{{activeMarker.name || activeMarker.title}}</view>
+    <view class="card-sub">{{activeMarker.address || ''}}</view>
+    <view class="card-actions">
+      <button class="card-btn" size="mini" bindtap="openLocation">导航</button>
+      <button class="card-btn ghost" size="mini" bindtap="clearActive">关闭</button>
+    </view>
+  </view>
+</view>
+

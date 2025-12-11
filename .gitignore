@@ -1,14 +1,45 @@
-# Windows
-[Dd]esktop.ini
-Thumbs.db
-$RECYCLE.BIN/
+# -------- 微信小程序常用忽略项 --------
 
-# macOS
-.DS_Store
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-
-# Node.js
+# 微信开发者工具缓存
+project.config.json.bak
+.project.config.json
+miniprogram_npm/
 node_modules/
+dist/
+build/
+coverage/
+
+# 微信开发者工具产生的临时文件
+.wechat_devtools/
+.wxapkg/
+.weapp_cache/
+webview_dest/
+.__dev__/ 
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Mac 系统垃圾
+.DS_Store
+*.swp
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 打包缓存
+*.log
+*.tmp
+*.temp
+
+# 编译输出（如果使用工具生成）
+unpackage/
+out/
+temp/
+
+# SASS/Less 等临时文件
+*.sass-cache
+*.scssc

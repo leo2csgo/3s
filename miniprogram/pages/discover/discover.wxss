@@ -1,7 +1,7 @@
 /* pages/discover/discover.wxss */
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  background: transparent;
   padding: 40rpx;
   padding-bottom: calc(40rpx + env(safe-area-inset-bottom) + 100rpx);
   box-sizing: border-box;
@@ -245,3 +245,49 @@
   font-size: 24rpx;
   color: #666;
 }
+
+
+/* ======= Aurora ambient background ======= */
+@keyframes aurora { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.ambient-bg{
+  position:fixed; left:0; top:0; right:0; bottom:0; z-index:-1;
+  background: linear-gradient(-45deg,#fdfbfb,#ebedee,#f3e7e9,#e3eeff);
+  background-size: 400% 400%; animation: aurora 15s ease infinite;
+}
+
+/* ======= Magic capsule ======= */
+.greeting{ font-size:28rpx; color:#666; display:block; margin-bottom:8rpx; }
+.magic-capsule{
+  background: rgba(255,255,255,0.8); backdrop-filter: blur(20px);
+  border-radius: 40rpx; padding: 32rpx; display:flex; align-items:center;
+  box-shadow: 0 20rpx 40rpx rgba(161,140,209,0.15);
+  border: 2rpx solid rgba(255,255,255,1); transition: transform .2s; margin-bottom: 24rpx;
+}
+.magic-capsule:active{ transform: scale(0.98); }
+.magic-icon-box{ width:88rpx; height:88rpx; border-radius:50%; flex-shrink:0;
+  background: linear-gradient(135deg,#a18cd1 0%, #fbc2eb 100%);
+  display:flex; align-items:center; justify-content:center; margin-right:24rpx; }
+.magic-icon{ font-size:40rpx; color:#fff; }
+.magic-content{ flex:1; }
+.magic-title{ font-size:32rpx; font-weight:700; color:#333; display:block; }
+.magic-subtitle{ font-size:24rpx; color:#888; margin-top:4rpx; display:block; }
+.magic-arrow{ font-size:36rpx; color:#ccc; font-weight:300; }
+
+/* ======= Action grid ======= */
+.action-grid{ display:flex; gap:24rpx; margin: 16rpx 0 8rpx; }
+.action-card{ flex:1; background: rgba(255,255,255,0.6); padding:24rpx; border-radius:24rpx;
+  display:flex; align-items:center; justify-content:center; gap:12rpx;
+  border:1px solid rgba(255,255,255,0.6); box-shadow:0 4rpx 12rpx rgba(0,0,0,0.02); }
+.emoji{ font-size:32rpx; }
+.label{ font-size:28rpx; font-weight:600; color:#555; }
+
+/* ======= Inspiration waterfall (flex fallback) ======= */
+.inspiration-section{ margin-top: 40rpx; }
+.waterfall{ display:flex; flex-wrap:wrap; gap:24rpx; }
+.pin-card{ width: calc(50% - 12rpx); background:#fff; border-radius:20rpx; overflow:hidden;
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.05); }
+.pin-img{ width:100%; display:block; }
+.pin-info{ padding:20rpx; }
+.pin-title{ font-size:28rpx; font-weight:600; color:#333; display:block; margin-bottom:12rpx; }
+.pin-tags{ display:flex; flex-wrap:wrap; gap:8rpx; }
+.pin-tag{ font-size:20rpx; color:#888; background:#f5f7fa; padding:4rpx 12rpx; border-radius:8rpx; }
