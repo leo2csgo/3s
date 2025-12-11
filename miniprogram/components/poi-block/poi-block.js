@@ -5,20 +5,20 @@ Component({
   properties: {
     block: {
       type: Object,
-      value: null
+      value: null,
     },
     editMode: {
       type: Boolean,
-      value: false
-    }
+      value: false,
+    },
   },
 
   data: {
-    formattedDuration: ''
+    formattedDuration: "",
   },
 
   observers: {
-    'block.content.duration': function(duration) {
+    "block.content.duration": function (duration) {
       if (duration) {
         // 将分钟转换为小时显示
         const hours = Math.floor(duration / 60);
@@ -31,7 +31,7 @@ Component({
           this.setData({ formattedDuration: `${mins}分钟` });
         }
       }
-    }
+    },
   },
 
   methods: {
@@ -39,14 +39,14 @@ Component({
     onNavTap() {
       const { block } = this.properties;
       const content = block.content || {};
-      
-      console.log('导航到:', content.name);
-      
+
+      console.log("导航到:", content.name);
+
       // 触发导航事件
-      this.triggerEvent('navigate', {
+      this.triggerEvent("navigate", {
         name: content.name,
         address: content.address,
-        location: content.location
+        location: content.location,
       });
 
       // 直接调用微信地图 (也可以由父组件处理)
@@ -56,7 +56,7 @@ Component({
           longitude: content.location.lng,
           name: content.name,
           address: content.address || content.name,
-          scale: 18
+          scale: 18,
         });
       } else {
         // 没有精确坐标时，使用默认坐标并显示地点名
@@ -65,11 +65,11 @@ Component({
           longitude: 121.4737,
           name: content.name,
           address: content.address || content.name,
-          scale: 18
+          scale: 18,
         }).catch(() => {
           wx.showToast({
-            title: '导航失败，请稍后重试',
-            icon: 'none'
+            title: "导航失败，请稍后重试",
+            icon: "none",
           });
         });
       }
@@ -78,34 +78,47 @@ Component({
     // 删除按钮点击
     onDeleteTap() {
       wx.showModal({
-        title: '确认删除',
+        title: "确认删除",
         content: `确定要删除「${this.properties.block.content.name}」吗？`,
         success: (res) => {
           if (res.confirm) {
-            this.triggerEvent('delete', {
-              blockId: this.properties.block.id
+            this.triggerEvent("delete", {
+              blockId: this.properties.block.id,
             });
           }
-        }
+        },
       });
     },
 
     // 描述输入
     onDescInput(e) {
-      this.triggerEvent('edit', {
-        field: 'description',
-        value: e.detail.value
+      this.triggerEvent("edit", {
+        field: "description",
+        value: e.detail.value,
       });
     },
 
     // 描述输入完成
     onDescBlur(e) {
-      this.triggerEvent('edit', {
-        field: 'description',
+      this.triggerEvent("edit", {
+        field: "description",
         value: e.detail.value,
-        completed: true
+        completed: true,
       });
-    }
-  }
-});
+    },
 
+    // 通用输入完成（name/startTime/duration/cost/note 等）
+    onInputBlur(e) {
+      const field =
+        e.currentTarget &&
+        e.currentTarget.dataset &&
+        e.currentTarget.dataset.field;
+      if (!field) return;
+      this.triggerEvent("edit", {
+        field,
+        value: e.detail.value,
+        completed: true,
+      });
+    },
+  },
+});

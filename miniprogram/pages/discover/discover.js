@@ -39,6 +39,13 @@ Page({
       },
     ],
 
+    // 筛选与榜单
+    filters: ["全部", "亲子", "情侣", "美食", "自然", "文化"],
+    activeFilter: 0,
+    displayTemplates: [],
+    latestTemplates: [],
+    editorPicks: [],
+
     // 分类
     categories: [
       { id: "cat_family", icon: "👨‍👩‍👧", name: "亲子" },
@@ -57,6 +64,7 @@ Page({
     if (!wx.cloud) {
       console.error("请使用 2.2.3 或以上的基础库以使用云能力");
     }
+    this.bootstrapLists();
   },
 
   // 显示 AI 生成面板
@@ -187,5 +195,40 @@ Page({
   goToCategory(e) {
     const categoryId = e.currentTarget.dataset.id;
     wx.showToast({ title: "分类功能开发中", icon: "none" });
+  },
+
+  // 初始化榜单并应用筛选
+  bootstrapLists() {
+    const templates = this.data.templates || [];
+    const latest = [...templates].reverse();
+    const picks = [...templates];
+    this.setData(
+      {
+        latestTemplates: latest,
+        editorPicks: picks,
+      },
+      () => this.applyFilter()
+    );
+  },
+
+  // 应用筛选
+  applyFilter() {
+    const { templates, filters, activeFilter } = this.data;
+    const label = filters[activeFilter];
+    if (label === "全部") {
+      this.setData({ displayTemplates: templates });
+    } else {
+      const list = (templates || []).filter((t) =>
+        (t.tags || []).includes(label)
+      );
+      this.setData({ displayTemplates: list });
+    }
+  },
+
+  // 切换筛选
+  onFilterTap(e) {
+    const index = e.currentTarget.dataset.index;
+    if (typeof index !== "number") return;
+    this.setData({ activeFilter: index }, () => this.applyFilter());
   },
 });

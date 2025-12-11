@@ -19,6 +19,11 @@
       </view>
     </block>
   </scroll-view>
+  <!-- 日统计：距离与时长估算 -->
+  <view class="stats glass" wx:if="{{stats}}">
+    <text class="stats-text">{{ selectedDay==='all' ? '总计' : ('D' + selectedDay) }} · {{stats.distanceKm}} km · 约 {{stats.durationText}}</text>
+  </view>
+
 
   <!-- 悬浮信息卡片 -->
   <view class="floating-card glass" wx:if="{{activeMarker}}">

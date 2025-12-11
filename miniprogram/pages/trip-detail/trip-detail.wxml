@@ -1,163 +1,101 @@
 <!--pages/trip-detail/trip-detail.wxml-->
-<view class="container" style="background: {{currentBg}}" bindtap="cancelMove">
-  <!-- 自定义导航栏 -->
-  <view class="nav-bar {{scrollTop > 10 ? 'glass' : ''}}" style="padding-top: {{statusBarHeight}}px">
-    <view class="nav-content">
-      <view class="nav-back" bindtap="goBack">
-        <text class="back-icon">←</text>
-      </view>
-      <text class="nav-title">{{tripInfo.title || '路书详情'}}</text>
-      <view class="nav-actions">
-        <text class="nav-icon" bindtap="showMoreActions">⋮</text>
-      </view>
+<view class="container aurora-page" bindtap="cancelMove">
+  <view class="hero">
+    <image src="{{tripInfo.coverUrl || 'https://images.unsplash.com/photo-1431274172761-fca41d930114?q=80&w=1080'}}" mode="aspectFill" class="hero-bg" />
+    <view class="hero-overlay"></view>
+    <view class="top-bar" style="padding-top: {{statusBarHeight}}px">
+      <view class="icon-btn glass-strong" catchtap="goBack" hover-class="pressed">←</view>
+      <view class="icon-btn glass-strong" catchtap="generatePoster" hover-class="pressed">📤</view>
     </view>
-  </view>
-
-  <!-- Hero Section -->
-  <view class="hero-section" style="padding-top: {{statusBarHeight + 44}}px">
-    <view class="hero-bg" wx:if="{{tripInfo.coverUrl}}">
-      <image class="hero-cover" src="{{tripInfo.coverUrl}}" mode="aspectFill"></image>
-      <view class="hero-gradient"></view>
-    </view>
-    <view class="hero-content">
-      <view class="hero-badges">
-        <view class="badge">{{tripInfo.city || '未知城市'}}</view>
-        <view class="badge">{{tripInfo.days || 0}} Days</view>
-        <view class="badge">{{tripInfo.intent || '旅行'}}</view>
-      </view>
+    <view class="hero-info">
       <text class="hero-title">{{tripInfo.title || '我的路书'}}</text>
-      <view class="hero-meta">
-        <text>预算 ¥{{tripInfo.meta.totalCost || 0}}</text>
-        <text class="dot">·</text>
-        <text>{{blocks.length}} 个节点</text>
-      </view>
-      <view class="route-overview" wx:if="{{dayOverview && dayOverview.length}}">
-        <block wx:for="{{dayOverview}}" wx:key="index">
-          <view class="route-chip">
-            <view class="route-dot" style="background: {{item.color}}"></view>
-            <text>D{{item.index}} · {{item.count}}</text>
-          </view>
-        </block>
+      <view class="badges">
+        <view class="badge glass-strong">📍 {{tripInfo.city || '未知'}}</view>
+        <view class="badge glass-strong">📅 {{tripInfo.days || 0}}天</view>
+        <view class="badge glass-strong">💰 ¥{{(tripInfo.meta && tripInfo.meta.totalCost) || 0}}</view>
       </view>
     </view>
   </view>
 
-  <!-- Block 列表区域 -->
-  <scroll-view class="block-scroll" scroll-y="{{true}}" enhanced="{{true}}" bindscroll="onScrollView">
-    <view class="timeline-canvas">
-      <view class="timeline-guide-line"></view>
+  <view class="timeline-section">
+    <view class="timeline-line"></view>
 
-      <!-- 遍历 blocks -->
+    <view class="blocks-list">
       <block wx:for="{{blocks}}" wx:key="id">
-        <!-- 移动目标区：在每个节点前（仅移动模式展示） -->
-        <view
-          class="move-target {{movingBlockId ? 'show' : ''}}"
-          wx:if="{{movingBlockId && movingBlockId !== item.id}}"
-          bindtap="onMoveTargetClick"
-          data-index="{{index}}"
-        >
-          <view class="move-indicator">👇 移动到这里</view>
+        <view class="move-target {{movingBlockId ? 'show' : ''}}" wx:if="{{movingBlockId && movingBlockId !== item.id}}" bindtap="onMoveTargetClick" data-index="{{index}}">
+          <view class="move-indicator glass">👇 移动到这里</view>
         </view>
 
-        <!-- 插入热区：在每个节点前（非移动模式） -->
-        <view class="insert-zone" wx:if="{{editMode && !movingBlockId}}" bindtap="onInsert" data-index="{{index}}">
-          <view class="plus-btn">+</view>
+        <view class="insert-zone" wx:if="{{editMode && !movingBlockId}}" catchtap="onInsert" data-index="{{index}}">
+          <view class="plus-btn glass-strong">＋</view>
         </view>
 
-        <view class="timeline-node type-{{item.type}} {{movingBlockId === item.id ? 'moving' : ''}}" bindlongpress="onBlockLongPress" data-block-id="{{item.id}}">
-          <view class="node-left">
-            <view wx:if="{{item.type === 'day-divider'}}" class="dot-day">📅</view>
-            <view wx:elif="{{item.type === 'transport'}}" class="dot-trans">🚗</view>
-            <view wx:else class="dot-poi"></view>
+        <view class="block-row type-{{item.type}} {{movingBlockId === item.id ? 'moving' : ''}}" bindlongpress="onBlockLongPress" data-block-id="{{item.id}}">
+          <view class="node-col">
+            <view wx:if="{{item.type === 'day-divider'}}" class="node-day glass-strong">📅</view>
+            <view wx:elif="{{item.type === 'transport'}}" class="node-dot trans"></view>
+            <view wx:else class="node-dot poi glass"></view>
           </view>
-          <view class="node-body">
-            <block-renderer
-              block="{{item}}"
-              editMode="{{editMode}}"
-              bind:navigate="onBlockNavigate"
-              bind:delete="onBlockDelete"
-              bind:edit="onBlockEdit"
-              bind:textchange="onBlockTextChange"
-              bind:update="onBlockUpdate"
-            />
+
+          <view class="content-col">
+            <view wx:if="{{item.type === 'day-divider'}}" class="day-header glass-strong">
+              <text class="day-label">{{item.content.label}}</text>
+              <text class="day-date" wx:if="{{item.content.date}}">{{item.content.date}}</text>
+            </view>
+            <view wx:else class="block-card glass-strong">
+              <block-renderer
+                block="{{item}}"
+                editMode="{{editMode}}"
+                bind:update="onBlockUpdate"
+                bind:delete="onBlockDelete"
+                bind:navigate="onBlockNavigate"
+              />
+            </view>
           </view>
         </view>
       </block>
 
-      <!-- 尾部移动目标区（移动模式） -->
-      <view
-        class="move-target tail {{movingBlockId ? 'show' : ''}}"
-        wx:if="{{movingBlockId}}"
-        bindtap="onMoveTargetClick"
-        data-index="{{blocks.length}}"
-      >
-        <view class="move-indicator">👇 移动到末尾</view>
+      <view class="move-target tail {{movingBlockId ? 'show' : ''}}" wx:if="{{movingBlockId}}" bindtap="onMoveTargetClick" data-index="{{blocks.length}}">
+        <view class="move-indicator glass">👇 移动到末尾</view>
       </view>
 
-      <!-- 末尾追加区（非移动模式） -->
-      <view class="append-zone" bindtap="onAppendBlock" wx:if="{{editMode && !movingBlockId}}">
-        <text>+ 添加行程节点</text>
+      <view class="append-zone" wx:if="{{editMode && !movingBlockId}}" catchtap="onAppendBlock">
+        <view class="append-btn glass">＋ 添加节点</view>
       </view>
 
-      <!-- 空状态 -->
       <view class="empty-blocks" wx:if="{{blocks.length === 0}}">
         <text class="empty-icon">📝</text>
         <text class="empty-text">还没有内容</text>
         <text class="empty-hint">点击下方按钮开始规划</text>
       </view>
+    </view>
 
-      <view class="footer-spacer"></view>
-    </view>
-  </scroll-view>
+    <view class="footer-spacer"></view>
+  </view>
 
-  <!-- 统一底部工具栏（Glass Bar） -->
-  <view class="bottom-toolbar glass-bar">
-    <view class="tool-btn" bindtap="toggleEditMode">
-      <text class="icon">{{editMode ? '✓' : '✎'}}</text>
-      <text>{{editMode ? '完成' : '编辑'}}</text>
-    </view>
-    <view class="tool-btn highlight" bindtap="openMapView">
-      <text class="icon">🗺️</text>
-      <text>地图</text>
-    </view>
-    <view class="tool-btn" bindtap="generatePoster">
-      <text class="icon">📤</text>
-      <text>分享</text>
+  <view class="bottom-bar-container">
+    <view class="bottom-bar glass-strong">
+      <view class="tool-btn {{editMode ? 'active' : ''}}" catchtap="toggleEditMode" hover-class="pressed">
+        <text class="icon">✏️</text>
+        <text>{{editMode ? '完成' : '编辑'}}</text>
+      </view>
+      <view class="divider"></view>
+      <view class="tool-btn" catchtap="openMapView" hover-class="pressed">
+        <text class="icon">🗺️</text>
+      </view>
     </view>
   </view>
 
-  <!-- 添加模块半屏菜单 -->
   <view class="add-drawer {{showAddDrawer ? 'show' : ''}}" catchtap="hideAddDrawer">
-    <view class="drawer-content" catchtap="stopPropagation">
-      <view class="drawer-header">
-        <text class="drawer-title">添加模块</text>
-        <text class="drawer-close" bindtap="hideAddDrawer">×</text>
-      </view>
+    <view class="drawer-panel" catchtap="stopPropagation">
+      <view class="drawer-header">添加模块</view>
       <view class="drawer-grid">
-        <view class="drawer-item" bindtap="addBlock" data-type="poi">
-          <text class="item-icon">📍</text>
-          <text class="item-name">地点</text>
-        </view>
-        <view class="drawer-item" bindtap="addBlock" data-type="text">
-          <text class="item-icon">📝</text>
-          <text class="item-name">备注</text>
-        </view>
-        <view class="drawer-item" bindtap="addBlock" data-type="transport">
-          <text class="item-icon">🚗</text>
-          <text class="item-name">交通</text>
-        </view>
-        <view class="drawer-item" bindtap="addBlock" data-type="image">
-          <text class="item-icon">📷</text>
-          <text class="item-name">图片</text>
-        </view>
-        <view class="drawer-item" bindtap="addBlock" data-type="day-divider">
-          <text class="item-icon">📅</text>
-          <text class="item-name">日期</text>
-        </view>
-        <view class="drawer-item" bindtap="addFromFavorites">
-          <text class="item-icon">⭐</text>
-          <text class="item-name">收藏</text>
-        </view>
+        <view class="drawer-item" catchtap="addBlock" data-type="poi">📍 地点</view>
+        <view class="drawer-item" catchtap="addBlock" data-type="transport">🚗 交通</view>
+        <view class="drawer-item" catchtap="addBlock" data-type="text">📝 备注</view>
+        <view class="drawer-item" catchtap="addBlock" data-type="checklist">📋 清单</view>
+        <view class="drawer-item" catchtap="addBlock" data-type="image">📷 图片</view>
+        <view class="drawer-item" catchtap="addBlock" data-type="day-divider">📅 日期</view>
       </view>
     </view>
   </view>

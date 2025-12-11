@@ -8,11 +8,24 @@
     <text class="delete-icon">×</text>
   </view>
 
-  <!-- 时间和费用行 -->
-  <view class="time-row">
-    <text class="time-tag">{{block.content.startTime || '全天'}}</text>
-    <view class="cost-tag" wx:if="{{block.content.cost > 0}}">
-      💰 ¥{{block.content.cost}}
+  <!-- 元信息：时间/时长/费用 -->
+  <view class="card-meta">
+    <view class="meta-item">
+      <text class="icon">⏰</text>
+      <input wx:if="{{editMode}}" class="meta-input" value="{{block.content.startTime || block.content.time}}" bindblur="onInputBlur" data-field="startTime" placeholder="10:00"/>
+      <text wx:else>{{block.content.startTime || block.content.time || '时间'}}</text>
+    </view>
+    <text class="dot">·</text>
+    <view class="meta-item">
+      <text class="icon">⏳</text>
+      <input wx:if="{{editMode}}" class="meta-input" value="{{block.content.duration}}" bindblur="onInputBlur" data-field="duration" placeholder="60"/>
+      <text wx:else>{{formattedDuration || (block.content.duration ? (block.content.duration + '分钟') : '')}}</text>
+    </view>
+    <text class="dot" wx:if="{{block.content.cost || editMode}}">·</text>
+    <view class="meta-item" wx:if="{{block.content.cost || editMode}}">
+      <text class="icon">💰</text>
+      <input wx:if="{{editMode}}" class="meta-input" value="{{block.content.cost}}" bindblur="onInputBlur" data-field="cost" placeholder="0"/>
+      <text wx:else>¥{{block.content.cost}}</text>
     </view>
   </view>
 
@@ -20,8 +33,9 @@
   <view class="main-content">
     <!-- 名称和导航按钮 -->
     <view class="name-row">
-      <text class="poi-name">{{block.content.name}}</text>
-      <view class="nav-btn" bindtap="onNavTap">
+      <input wx:if="{{editMode}}" class="poi-input title" value="{{block.content.name}}" bindblur="onInputBlur" data-field="name" placeholder="地点名称"/>
+      <text wx:else class="poi-name">{{block.content.name}}</text>
+      <view class="nav-btn" bindtap="onNavTap" wx:if="{{!editMode}}">
         <view class="nav-icon-bg">
           <text class="nav-icon">↗</text>
         </view>
@@ -44,14 +58,16 @@
       <text wx:else class="desc-text">{{block.content.description || block.content.address || '暂无描述'}}</text>
     </view>
 
-    <!-- 时长 -->
-    <view class="duration-row" wx:if="{{block.content.duration}}">
-      <text class="duration-text">⏱ {{formattedDuration}}</text>
-    </view>
 
     <!-- 标签 -->
     <view class="tags-row" wx:if="{{block.content.tags && block.content.tags.length > 0}}">
       <text class="tag" wx:for="{{block.content.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+
+    <!-- 备注 -->
+    <view class="card-note">
+      <input wx:if="{{editMode}}" class="note-input" value="{{block.content.note}}" bindblur="onInputBlur" data-field="note" placeholder="添加备注 (如: 提前买票)"/>
+      <text wx:elif="{{block.content.note}}" class="note-text">💡 {{block.content.note}}</text>
     </view>
   </view>
 </view>

@@ -8,6 +8,31 @@ const { BlockFactory, BLOCK_TYPES } = require("../../utils/BlockFactory");
 const ORDER_INCREMENT = 100;
 
 // ============================================
+//
+//
+function _fetchTripCode(tripId) {
+  if (!tripId || !wx.cloud) return Promise.resolve(null);
+  return wx.cloud
+    .callFunction({
+      name: "trip-service",
+      data: {
+        action: "genCode",
+        payload: {
+          tripId,
+          path: `/pages/trip-detail/trip-detail?id=${tripId}`,
+        },
+      },
+    })
+    .then((res) => {
+      const r = (res && res.result) || {};
+      const fileID = r.fileID || r.codeFileID || "";
+      const url = r.tempUrl || r.url || "";
+      if (!fileID && !url) return null;
+      return { fileID, url };
+    })
+    .catch(() => null);
+}
+
 // Page 定义
 // ============================================
 
@@ -401,6 +426,9 @@ Page({
       case "image":
         this.addImageBlock();
         break;
+      case "checklist":
+        this.addChecklistBlock();
+        break;
     }
   },
 
@@ -478,8 +506,68 @@ Page({
     if (this.scheduleSave) this.scheduleSave();
   },
 
+  addChecklistBlock() {
+    const order = this.getNextOrder();
+    const block = BlockFactory.createChecklist({ items: [], order });
+    this.insertBlockAtPosition(block);
+    if (this.scheduleSave) this.scheduleSave();
+  },
+
   addImageBlock() {
-    wx.showToast({ title: "图片功能开发中", icon: "none" });
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ["image"],
+      sourceType: ["album", "camera"],
+      success: (res) => {
+        const tempFilePath =
+          res.tempFiles && res.tempFiles[0] && res.tempFiles[0].tempFilePath;
+        if (!tempFilePath) return;
+        wx.showLoading({ title: "上传中...", mask: true });
+        const cloudPath = `trips/${
+          this.data.tripId || "tmp"
+        }/${Date.now()}.jpg`;
+        wx.cloud.uploadFile({
+          cloudPath,
+          filePath: tempFilePath,
+          success: (up) => {
+            const order = this.getNextOrder();
+            wx.cloud.getTempFileURL({
+              fileList: [up.fileID],
+              success: (r) => {
+                const url =
+                  (r.fileList && r.fileList[0] && r.fileList[0].tempFileURL) ||
+                  up.fileID;
+                const block = BlockFactory.createImage({
+                  url,
+                  fileID: up.fileID,
+                  order,
+                });
+                this.insertBlockAtPosition(block);
+                if (this.scheduleSave) this.scheduleSave();
+                wx.hideLoading();
+                wx.showToast({ title: "已添加图片", icon: "success" });
+              },
+              fail: () => {
+                const block = BlockFactory.createImage({
+                  url: up.fileID,
+                  fileID: up.fileID,
+                  order,
+                });
+                this.insertBlockAtPosition(block);
+                if (this.scheduleSave) this.scheduleSave();
+                wx.hideLoading();
+                wx.showToast({ title: "已添加图片", icon: "success" });
+              },
+            });
+          },
+          fail: (err) => {
+            console.error(err);
+            wx.hideLoading();
+            wx.showToast({ title: "上传失败", icon: "none" });
+          },
+        });
+      },
+    });
   },
 
   addFromFavorites() {
@@ -666,9 +754,33 @@ Page({
     if (this._generatingPoster) return;
     this._generatingPoster = true;
     wx.showLoading({ title: "生成中", mask: true });
-    const { tripInfo, dayOverview } = this.data;
+    const { tripInfo, dayOverview, tripId } = this.data;
     const cover = tripInfo.coverUrl;
-    const draw = (imgPath) => {
+
+    // tasks
+    const coverTask = new Promise((resolve) => {
+      if (!cover) return resolve("");
+      wx.getImageInfo({
+        src: cover,
+        success: (r) => resolve(r.path),
+        fail: () => resolve(""),
+      });
+    });
+    const codeTask = _fetchTripCode(tripId)
+      .then((code) =>
+        code && code.url
+          ? new Promise((resolve) => {
+              wx.getImageInfo({
+                src: code.url,
+                success: (r) => resolve({ path: r.path, fileID: code.fileID }),
+                fail: () => resolve(null),
+              });
+            })
+          : null
+      )
+      .catch(() => null);
+
+    Promise.all([coverTask, codeTask]).then(([imgPath, codeObj]) => {
       const ctx = wx.createCanvasContext("posterCanvas", this);
       const W = 750,
         H = 1200;
@@ -732,6 +844,18 @@ Page({
         ctx.fillText(txt, x + 32, y + chipH / 2 + 8);
         x += w + gap;
       });
+
+      // QR code overlay (optional)
+      if (codeObj && codeObj.path) {
+        const size = 160;
+        const px = W - 40 - size;
+        const py = H - 40 - size;
+        ctx.drawImage(codeObj.path, px, py, size, size);
+        ctx.setFillStyle("#666");
+        ctx.setFontSize(20);
+        ctx.fillText("扫码查看行程", px - 4, py - 12);
+      }
+
       // footer
       ctx.setFillStyle("#999");
       ctx.setFontSize(22);
@@ -741,9 +865,34 @@ Page({
           {
             canvasId: "posterCanvas",
             success: (res) => {
-              wx.hideLoading();
-              this._generatingPoster = false;
-              wx.previewImage({ urls: [res.tempFilePath] });
+              const temp = res.tempFilePath;
+              const finish = () => {
+                wx.hideLoading();
+                this._generatingPoster = false;
+                wx.previewImage({ urls: [temp] });
+              };
+              // upload poster & record share history
+              if (tripId && wx.cloud) {
+                const cloudPath = `posters/${tripId}_${Date.now()}.jpg`;
+                wx.cloud
+                  .uploadFile({ cloudPath, filePath: temp })
+                  .then((up) => {
+                    const posterFileID = up.fileID;
+                    const codeFileID = codeObj && codeObj.fileID;
+                    wx.cloud
+                      .callFunction({
+                        name: "trip-service",
+                        data: {
+                          action: "shareRecord",
+                          payload: { tripId, posterFileID, codeFileID },
+                        },
+                      })
+                      .finally(finish);
+                  })
+                  .catch(finish);
+              } else {
+                finish();
+              }
             },
             fail: (e) => {
               wx.hideLoading();
@@ -755,17 +904,7 @@ Page({
           this
         );
       });
-    };
-
-    if (cover) {
-      wx.getImageInfo({
-        src: cover,
-        success: (r) => draw(r.path),
-        fail: () => draw(""),
-      });
-    } else {
-      draw("");
-    }
+    });
   },
 
   deleteTrip() {
@@ -805,6 +944,29 @@ Page({
     const dayOverview = this._computeDayOverview(this.data.blocks || []);
 
     this.setData({
+      _fetchTripCode(tripId) {
+        if (!tripId || !wx.cloud) return Promise.resolve(null);
+        return wx.cloud
+          .callFunction({
+            name: "trip-service",
+            data: {
+              action: "genCode",
+              payload: {
+                tripId,
+                path: `/pages/trip-detail/trip-detail?id=${tripId}`,
+              },
+            },
+          })
+          .then((res) => {
+            const r = (res && res.result) || {};
+            const fileID = r.fileID || r.codeFileID || "";
+            const url = r.tempUrl || r.url || "";
+            if (!fileID && !url) return null;
+            return { fileID, url };
+          })
+          .catch(() => null);
+      },
+
       "tripInfo.meta.totalCost": totalCost,
       "tripInfo.updatedAt": Date.now(),
       dayOverview,

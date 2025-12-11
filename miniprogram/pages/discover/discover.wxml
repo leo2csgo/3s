@@ -1,65 +1,51 @@
 <!--pages/discover/discover.wxml-->
-<view class="container">
-  <view class="ambient-bg"></view>
-
-  <!-- 头部区域 -->
+<view class="container aurora-page">
   <view class="header">
-    <text class="greeting">Hi, 旅行者 👋</text>
-    <text class="title">下一站，去哪儿？</text>
+    <text class="title">发现灵感</text>
+    <text class="subtitle">开启你的下一段旅程</text>
   </view>
 
-  <!-- 魔法胶囊 + 快捷入口 -->
-  <view class="magic-capsule" bindtap="goToAIGenerate">
-    <view class="magic-icon-box">
-      <text class="magic-icon">✨</text>
+  <view class="action-row">
+    <view class="btn-ai glass-strong" bindtap="goToAIGenerate" hover-class="pressed">
+      <text class="icon-sparkles">✨</text>
+      <text>AI 魔法生成</text>
     </view>
-    <view class="magic-content">
-      <text class="magic-title">AI 一键生成路书</text>
-      <text class="magic-subtitle">输入目的地，3秒生成完美行程</text>
-    </view>
-    <view class="magic-arrow">→</view>
-  </view>
 
-  <view class="action-grid">
-    <view class="action-card blank" bindtap="createBlankTrip">
-      <text class="emoji">📝</text>
-      <text class="label">空白创建</text>
-    </view>
-    <view class="action-card history" bindtap="viewAllTemplates">
-      <text class="emoji">🔥</text>
-      <text class="label">热门模版</text>
+    <view class="btn-blank glass-strong" bindtap="createBlankTrip" hover-class="pressed">
+      <text class="icon-plus">＋</text>
     </view>
   </view>
 
-  <!-- 灵感推荐 -->
-  <view class="inspiration-section">
+
+  <!-- 筛选 chips -->
+
+  <view class="section">
     <view class="section-header">
-      <text class="section-title">灵感推荐</text>
+      <text class="icon-trend">🔥</text>
+      <text class="section-title">热门模板</text>
     </view>
 
-    <view class="waterfall">
-      <view class="pin-card" wx:for="{{templates}}" wx:key="id" bindtap="useTemplate" data-id="{{item.id}}">
-        <image src="{{item.cover}}" mode="widthFix" class="pin-img"/>
-        <view class="pin-info">
-          <text class="pin-title">{{item.title}}</text>
-          <view class="pin-tags">
-            <text class="pin-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+    <view class="grid">
+      <block wx:for="{{templates}}" wx:key="id">
+        <view class="card glass {{index % 3 === 0 ? 'card-wide' : ''}}" hover-class="pressed"
+              bindtap="useTemplate" data-id="{{item.id}}">
+
+          <view class="card-image-wrap">
+            <image src="{{item.cover}}" mode="aspectFill" class="card-image" />
+            <view class="days-badge glass-strong">{{item.days}}天</view>
+          </view>
+
+          <view class="card-content">
+            <text class="card-title">{{item.title}}</text>
+            <view class="tags">
+              <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="tag">{{tag}}</text>
+            </view>
+            <view class="likes">
+              <text>❤️ {{1234 + index * 100}}</text> </view>
           </view>
         </view>
-      </view>
+      </block>
     </view>
   </view>
 
-
-  <!-- 分类入口 -->
-  <view class="category-section">
-    <view class="section-title">🏷️ 分类探索</view>
-    <view class="category-grid">
-      <view class="category-item" wx:for="{{categories}}" wx:key="id" bindtap="goToCategory" data-id="{{item.id}}">
-        <text class="category-icon">{{item.icon}}</text>
-        <text class="category-name">{{item.name}}</text>
-      </view>
-    </view>
-  </view>
 </view>
-

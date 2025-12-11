@@ -1,0 +1,20 @@
+<view class="img-block">
+  <view class="grid">
+    <block wx:for="{{images}}" wx:key="index">
+      <view class="cell">
+        <image class="img" src="{{item.url}}" mode="aspectFill"
+               data-index="{{index}}" bindtap="onPreview" bindlongpress="onPreview" />
+        <view class="ops" wx:if="{{editMode}}">
+          <text class="op replace" data-index="{{index}}" bindtap="onReplace">换</text>
+          <text class="op delete" data-index="{{index}}" bindtap="onRemove">删</text>
+        </view>
+      </view>
+    </block>
+    <view class="cell add" wx:if="{{editMode && images.length < 9}}" bindtap="onAdd">+</view>
+  </view>
+  <view class="caption">
+    <input class="caption-input" placeholder="添加说明..." value="{{caption}}"
+           bindblur="onCaptionBlur" disabled="{{!editMode}}" />
+  </view>
+</view>
+

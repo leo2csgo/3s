@@ -1,0 +1,26 @@
+<view class="checklist-container">
+  <view class="checklist-header">
+    <text class="title">📋 待办清单</text>
+    <view class="actions" wx:if="{{editMode}}">
+      <view class="tpl-btn" bindtap="onTemplate">模板</view>
+      <view class="col-btn" bindtap="onToggleColumns">{{columns}}列</view>
+      <view class="add-btn" bindtap="onAddItem">+</view>
+    </view>
+  </view>
+
+  <view class="list-items columns-{{columns}}">
+    <view class="item" wx:for="{{block.content.items}}" wx:key="index">
+      <view class="checkbox {{item.checked ? 'checked' : ''}}" bindtap="onToggle" data-index="{{index}}">
+        <text wx:if="{{item.checked}}" class="check-mark">✔</text>
+      </view>
+      <input class="item-input {{item.checked ? 'done' : ''}}"
+             value="{{item.text}}"
+             disabled="{{!editMode}}"
+             bindblur="onInputBlur"
+             data-index="{{index}}"
+             placeholder="输入事项..." />
+      <view class="delete-icon" wx:if="{{editMode}}" bindtap="onDeleteItem" data-index="{{index}}">×</view>
+    </view>
+  </view>
+</view>
+

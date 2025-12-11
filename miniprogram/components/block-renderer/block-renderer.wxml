@@ -1,10 +1,11 @@
+
 <!--
   Block Renderer - 分发器组件
   根据 block.type 决定渲染什么子视图
 -->
 <view class="block-wrapper" data-block-id="{{block.id}}">
   <!-- Day Divider Block -->
-  <day-divider-block 
+  <day-divider-block
     wx:if="{{block.type === 'day-divider'}}"
     block="{{block}}"
   />
@@ -30,31 +31,30 @@
     bind:update="onUpdate"
   />
 
-  <!-- Transport Block (暂用简单样式) -->
+  <!-- Transport Block (结构化展示：方式 · 时长 + 起点 → 终点) -->
   <view wx:elif="{{block.type === 'transport'}}" class="transport-block">
-    <view class="transport-icon">
-      <text wx:if="{{block.content.mode === 'taxi'}}">🚕</text>
-      <text wx:elif="{{block.content.mode === 'subway'}}">🚇</text>
-      <text wx:elif="{{block.content.mode === 'walk'}}">🚶</text>
-      <text wx:elif="{{block.content.mode === 'bus'}}">🚌</text>
-      <text wx:else>🚗</text>
-    </view>
     <view class="transport-info">
-      <text class="transport-instruction">{{block.content.instruction || '前往下一地点'}}</text>
-      <text class="transport-duration" wx:if="{{block.content.duration}}">约{{block.content.duration}}分钟</text>
+      <text class="transport-main">{{block.content.mode || '交通'}}<text wx:if="{{block.content.duration}}"> · {{block.content.duration}}分钟</text></text>
+      <text class="transport-route" wx:if="{{block.content.from || block.content.to}}">{{block.content.from || '出发地'}} → {{block.content.to || '目的地'}}</text>
     </view>
   </view>
 
-  <!-- Image Block (暂用简单样式) -->
-  <view wx:elif="{{block.type === 'image'}}" class="image-block">
-    <image 
-      class="block-image" 
-      src="{{block.content.url}}" 
-      mode="widthFix"
-      lazy-load
-    />
-    <text class="image-caption" wx:if="{{block.content.caption}}">{{block.content.caption}}</text>
-  </view>
+  <!-- Image Block -->
+  <image-block
+    wx:elif="{{block.type === 'image'}}"
+    block="{{block}}"
+    editMode="{{editMode}}"
+    bind:update="onUpdate"
+    bind:delete="onDelete"
+  />
+
+  <!-- Checklist Block -->
+  <checklist-block
+    wx:elif="{{block.type === 'checklist'}}"
+    block="{{block}}"
+    editMode="{{editMode}}"
+    bind:update="onUpdate"
+  />
 
   <!-- Unknown Block Type -->
   <view wx:else class="unknown-block">

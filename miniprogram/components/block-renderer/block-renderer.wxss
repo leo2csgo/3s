@@ -1,17 +1,17 @@
 /* Block Renderer 样式 */
 
 .block-wrapper {
-  margin-bottom: 16rpx;
+  margin-bottom: 0;
 }
 
 /* Transport Block 样式 */
 .transport-block {
   display: flex;
   align-items: center;
-  padding: 16rpx 24rpx;
-  background: rgba(245, 247, 250, 0.6);
-  border-radius: 12rpx;
-  border-left: 4rpx solid rgba(161, 140, 209, 0.4);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
 }
 
 .transport-icon {
@@ -23,15 +23,24 @@
   display: flex;
   flex-direction: column;
 }
+.transport-route {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4rpx;
+}
+.transport-main {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
 
 .transport-instruction {
   font-size: 26rpx;
-  color: #666;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .transport-duration {
   font-size: 22rpx;
-  color: #999;
+  color: rgba(255, 255, 255, 0.7);
   margin-top: 4rpx;
 }
 
@@ -39,7 +48,7 @@
 .image-block {
   border-radius: 16rpx;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.6);
+  background: transparent;
 }
 
 .block-image {
@@ -67,4 +76,3 @@
   font-size: 24rpx;
   color: #e74c3c;
 }
-
