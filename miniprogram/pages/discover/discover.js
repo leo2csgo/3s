@@ -67,10 +67,13 @@ Page({
     this.bootstrapLists();
   },
 
-  // 显示 AI 生成面板
+  // 跳转到统一的「3秒出卡 / AI 魔法生成」页面
+  // 说明：原本本页计划内嵌一个 AI 面板（showAIPanel），
+  // 但现在已经将完整的 3 秒出卡流程收敛在 /pages/index/index 中，
+  // 这里直接导航过去，避免在 discover 和 index 里各维护一套生成逻辑。
   goToAIGenerate() {
-    this.setData({
-      showAIPanel: !this.data.showAIPanel,
+    wx.navigateTo({
+      url: "/pages/index/index",
     });
   },
 
@@ -119,7 +122,9 @@ Page({
     this.setData({ intentIndex: parseInt(e.detail.value) });
   },
 
-  // AI 生成路书
+  // === 已废弃：原 discover 页内的 AI 生成逻辑（目前统一走 index.generateCard）===
+  // 保留代码仅供参考，避免后续维护时误以为这里仍在被页面调用。
+  // 当前“AI 魔法生成”按钮会跳转到 /pages/index/index，由该页完成生成与预览。
   generateTrip() {
     const { cities, cityIndex, days, dayIndex, intents, intentIndex } =
       this.data;

@@ -187,7 +187,9 @@ function convertPlanToBlocks(planData, options = {}) {
             cost: activity.cost || 0,
             description: activity.description || "",
             address: activity.address || activity.description || "",
-            tags: [],
+            // 关键：如果 planData 中已经带有 location / tags，也一并传入，保证导航和地图可用
+            location: activity.location || null,
+            tags: activity.tags || [],
           },
           orderCounter
         );
@@ -282,12 +284,131 @@ function convertBlocksToPlan(blocks, tripInfo) {
 
 Page({
   data: {
+    // 城市相关：保留一维 cities 以兼容旧逻辑，selectedCity 为当前选择
     cities: ["上海", "杭州", "广州", "北京", "成都"],
     cityIndex: 0,
-    days: [1, 2, 3],
+    selectedCity: "上海",
+    showCityPanel: false,
+    cityGroups: [
+      {
+        name: "热门城市",
+        cities: [
+          "北京",
+          "上海",
+          "广州",
+          "深圳",
+          "杭州",
+          "成都",
+          "重庆",
+          "西安",
+          "厦门",
+          "三亚",
+        ],
+      },
+      {
+        name: "华北东北",
+        cities: [
+          "北京",
+          "天津",
+          "石家庄",
+          "青岛",
+          "济南",
+          "大连",
+          "沈阳",
+          "哈尔滨",
+        ],
+      },
+      {
+        name: "华东",
+        cities: ["上海", "南京", "苏州", "无锡", "杭州", "宁波", "合肥"],
+      },
+      {
+        name: "华南西南",
+        cities: [
+          "广州",
+          "深圳",
+          "珠海",
+          "桂林",
+          "昆明",
+          "大理",
+          "丽江",
+          "成都",
+          "重庆",
+        ],
+      },
+      {
+        name: "西北西南",
+        cities: ["西安", "兰州", "银川", "乌鲁木齐", "拉萨"],
+      },
+      {
+        name: "港澳台",
+        cities: ["香港", "澳门", "台北", "高雄", "花莲"],
+      },
+    ],
+    // 游玩天数：默认支持 1~10 天，可根据需要继续扩展
+    days: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
     dayIndex: 1, // 默认2天
     intents: ["亲子遛娃", "情侣约会", "朋友小聚", "美食探店"],
     intentIndex: 0,
+    // AI 魔法生成弹层相关状态
+    showAIPanel: false,
+    // 目的地：既可以直接输入，也可以点热门目的地按钮
+    hotDestinations: [
+      "巴黎",
+      "东京",
+      "纽约",
+      "巴厘岛",
+      "伦敦",
+      "罗马",
+      "首尔",
+      "曼谷",
+    ],
+    // 旅行偏好（可多选），同时映射到内部 intent_tag
+    aiPreferences: [
+      {
+        id: "couple",
+        label: "情侣",
+        emoji: "💑",
+        intent: "情侣约会",
+        selected: false,
+      },
+      {
+        id: "family",
+        label: "亲子",
+        emoji: "👨‍👩‍👧",
+        intent: "亲子遛娃",
+        selected: false,
+      },
+      {
+        id: "food",
+        label: "美食",
+        emoji: "🍜",
+        intent: "美食探店",
+        selected: false,
+      },
+      {
+        id: "photo",
+        label: "摄影",
+        emoji: "📸",
+        intent: "朋友小聚",
+        selected: false,
+      },
+      {
+        id: "shopping",
+        label: "购物",
+        emoji: "🛍️",
+        intent: "朋友小聚",
+        selected: false,
+      },
+      {
+        id: "culture",
+        label: "文化",
+        emoji: "🎭",
+        intent: "朋友小聚",
+        selected: false,
+      },
+    ],
+    hasPrefSelected: false,
     loading: false,
     cardImageUrl: "",
     cardContent: "", // 存储文本内容
@@ -423,8 +544,46 @@ Page({
 
   // 城市选择变化
   onCityChange(e) {
+    const idx = parseInt(e.detail.value);
+    const name = this.data.cities[idx] || this.data.selectedCity;
     this.setData({
-      cityIndex: parseInt(e.detail.value),
+      cityIndex: idx,
+      selectedCity: name,
+    });
+  },
+
+  // 打开城市选择面板（按省份/热门/港澳台分组）
+  openCityPanel() {
+    console.log(
+      "[index] openCityPanel tapped, before showCityPanel =",
+      this.data.showCityPanel
+    );
+    this.setData({ showCityPanel: true }, () => {
+      console.log(
+        "[index] openCityPanel after setData, showCityPanel =",
+        this.data.showCityPanel
+      );
+    });
+  },
+
+  // 空方法：用于阻止城市面板内部点击冒泡关闭面板
+  noop() {},
+
+  // 关闭城市选择面板
+  closeCityPanel() {
+    this.setData({ showCityPanel: false });
+  },
+
+  // 在城市面板中选择城市
+  onSelectCity(e) {
+    const name = e.currentTarget.dataset.city;
+    if (!name) return;
+    // 如果该城市在原来的 cities 数组中，则同步更新 cityIndex，方便兼容旧逻辑
+    const idx = this.data.cities.indexOf(name);
+    this.setData({
+      selectedCity: name,
+      showCityPanel: false,
+      cityIndex: idx >= 0 ? idx : this.data.cityIndex,
     });
   },
 
@@ -443,12 +602,118 @@ Page({
     });
   },
 
+  // ===== AI 魔法生成弹层：打开 / 关闭 =====
+  openAIPanel() {
+    // 每次打开时，默认勾选第一个偏好，方便快速开始
+    const prefs = (this.data.aiPreferences || []).map((p, idx) => ({
+      ...p,
+      selected: idx === 0,
+    }));
+    this.setData({
+      showAIPanel: true,
+      aiPreferences: prefs,
+      hasPrefSelected: prefs.length > 0,
+    });
+  },
+
+  closeAIPanel() {
+    this.setData({ showAIPanel: false });
+  },
+
+  // 目的地输入
+  onCityInput(e) {
+    const value = (e.detail && e.detail.value) || "";
+    this.setData({
+      selectedCity: value.trim(),
+    });
+  },
+
+  // 点击热门目的地按钮
+  onHotDestinationTap(e) {
+    const name = e.currentTarget.dataset && e.currentTarget.dataset.city;
+    if (!name) return;
+    this.setData({
+      selectedCity: name,
+    });
+  },
+
+  // 天数步进：-1 / +1，限制在 days 数组范围内
+  changeDay(e) {
+    const delta = parseInt(e.currentTarget.dataset.delta || 0);
+    if (!delta) return;
+    const { dayIndex, days } = this.data;
+    const maxIndex = (days || []).length - 1;
+    let next = dayIndex + delta;
+    if (next < 0) next = 0;
+    if (next > maxIndex) next = maxIndex;
+    if (next === dayIndex) return;
+    this.setData({ dayIndex: next });
+  },
+
+  // 切换旅行偏好（可多选）
+  togglePreference(e) {
+    const id = e.currentTarget.dataset && e.currentTarget.dataset.id;
+    if (!id) return;
+    const prefs = (this.data.aiPreferences || []).map((p) =>
+      p.id === id ? { ...p, selected: !p.selected } : p
+    );
+    const hasPrefSelected = prefs.some((p) => p.selected);
+    this.setData({
+      aiPreferences: prefs,
+      hasPrefSelected,
+    });
+  },
+
+  // 弹层里的「开始生成」按钮
+  startAIGenerate() {
+    const { selectedCity, aiPreferences, intents } = this.data;
+    if (!selectedCity) {
+      wx.showToast({ title: "请先选择或输入目的地", icon: "none" });
+      return;
+    }
+    const picked = (aiPreferences || []).find((p) => p.selected);
+    let intentTag = intents[this.data.intentIndex] || "朋友小聚";
+    if (picked) {
+      // 将首个偏好映射到内部 intent_tag
+      const mapped = picked.intent;
+      const idx = intents.indexOf(mapped);
+      if (idx >= 0) {
+        this.setData({ intentIndex: idx });
+        intentTag = mapped;
+      }
+    }
+    console.log("[AI 面板] 参数确认", {
+      city: selectedCity,
+      intentTag,
+      dayIndex: this.data.dayIndex,
+    });
+    // 直接根据当前参数生成路书
+    this.generateCard();
+  },
+
+  // 顶部关闭按钮：返回发现页或上一个页面
+  onClosePage() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+    } else {
+      wx.switchTab({ url: "/pages/discover/discover" });
+    }
+  },
+
   // 生成卡片
   generateCard() {
-    const { cities, cityIndex, days, dayIndex, intents, intentIndex } =
-      this.data;
+    const {
+      cities,
+      cityIndex,
+      days,
+      dayIndex,
+      intents,
+      intentIndex,
+      selectedCity,
+    } = this.data;
 
-    const city = cities[cityIndex];
+    const city = selectedCity || cities[cityIndex];
     const day = days[dayIndex];
     const intent_tag = intents[intentIndex];
 
@@ -479,6 +744,8 @@ Page({
           city: city,
           days: day,
           intent_tag: intent_tag,
+          // 预留 provider 字段，当前默认走 "tencent-lbs" 管道
+          provider: "tencent-lbs",
         },
       })
       .then((res) => {
@@ -543,6 +810,22 @@ Page({
             blockEditMode: false,
           });
 
+          // 生成成功后，直接进入路书详情页（按路书页面结构展示）
+          try {
+            const payloadForTrip = {
+              city,
+              days: day,
+              intent: intent_tag,
+              blocks,
+            };
+            const encoded = encodeURIComponent(JSON.stringify(payloadForTrip));
+            wx.navigateTo({
+              url: `/pages/trip-detail/trip-detail?data=${encoded}`,
+            });
+          } catch (navErr) {
+            console.error("跳转路书页面失败:", navErr);
+          }
+
           // 根据数据来源显示不同提示
           if (!isRealtime) {
             wx.showToast({
@@ -558,8 +841,7 @@ Page({
             });
           }
 
-          // 绘制图片
-          this.drawCardImage(plan);
+          // 本页不再绘制 3 秒出卡图片，直接在路书页体验
         } else {
           throw new Error(res.result.error || "生成失败");
         }
@@ -1384,6 +1666,7 @@ Page({
       bgIndex,
       currentBgImage,
       qrCodeUrl,
+      selectedCity,
     } = this.data;
 
     console.log("开始绘制包含二维码的海报");
@@ -1440,8 +1723,9 @@ Page({
     ctx.setFillStyle("#333");
     ctx.setFontSize(44);
     ctx.setTextAlign("center");
+    const titleCity = selectedCity || cities[cityIndex];
     ctx.fillText(
-      `✈️ ${cities[cityIndex]} · ${days[dayIndex]}天之旅`,
+      `✈️ ${titleCity} · ${days[dayIndex]}天之旅`,
       canvasWidth / 2,
       y
     );
@@ -1671,6 +1955,7 @@ Page({
       backgrounds,
       bgIndex,
       currentBgImage,
+      selectedCity,
     } = this.data;
 
     console.log("开始绘制长图海报");
@@ -1731,8 +2016,9 @@ Page({
     ctx.setFillStyle("#333");
     ctx.setFontSize(44);
     ctx.setTextAlign("center");
+    const titleCity = selectedCity || cities[cityIndex];
     ctx.fillText(
-      `✈️ ${cities[cityIndex]} · ${days[dayIndex]}天之旅`,
+      `✈️ ${titleCity} · ${days[dayIndex]}天之旅`,
       canvasWidth / 2,
       y
     );

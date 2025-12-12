@@ -133,6 +133,9 @@ Page({
               meta: doc.meta || { totalCost: 0 },
               createdAt: doc.createdAt,
               updatedAt: doc.updatedAt,
+              // 
+              coverUrl: doc.coverUrl || doc.coverImage || "",
+              coverFileID: doc.coverFileID || "",
             },
             blocks: doc.blocks || [],
           });
@@ -263,7 +266,38 @@ Page({
   // ============================================
 
   enterEditMode() {
-    this.setData({ editMode: true });
+    const { blocks, tripInfo } = this.data;
+    let newBlocks = blocks;
+    let changed = false;
+    // 若当前路书中还没有任何 Day 分隔卡，自动在最前面插入 Day 1
+    const hasDay = (blocks || []).some(
+      (b) => b.type === BLOCK_TYPES.DAY_DIVIDER
+    );
+    if (!hasDay) {
+      const baseOrder = blocks.length
+        ? Math.min.apply(
+            null,
+            blocks.map((b) =>
+              typeof b.order === "number" ? b.order : ORDER_INCREMENT
+            )
+          ) - ORDER_INCREMENT
+        : ORDER_INCREMENT;
+      const dayBlock = BlockFactory.createDayDivider({
+        dayIndex: 1,
+        label: "Day 1",
+        order: baseOrder,
+      });
+      newBlocks = [...blocks, dayBlock].sort((a, b) => a.order - b.order);
+      changed = true;
+    }
+    this.setData({
+      editMode: true,
+      blocks: newBlocks,
+      "tripInfo.days": (tripInfo && tripInfo.days) > 0 ? tripInfo.days : 1,
+    });
+    if (changed && this.scheduleSave) {
+      this.scheduleSave();
+    }
     try {
       wx.vibrateShort({ type: "medium" });
     } catch (e) {}
@@ -405,7 +439,8 @@ Page({
 
   addBlock(e) {
     const type = e.currentTarget.dataset.type;
-    this.hideAddDrawer();
+    // 仅关闭抽屉，不立刻清空插入位置，确保 getNextOrder 还能读到 insertBeforeId/insertAfterId
+    this.setData({ showAddDrawer: false });
     try {
       wx.vibrateShort({ type: "light" });
     } catch (e) {}
@@ -522,6 +557,14 @@ Page({
         const tempFilePath =
           res.tempFiles && res.tempFiles[0] && res.tempFiles[0].tempFilePath;
         if (!tempFilePath) return;
+        const order = this.getNextOrder();
+        if (!wx.cloud) {
+          const block = BlockFactory.createImage({ url: tempFilePath, order });
+          this.insertBlockAtPosition(block);
+          if (this.scheduleSave) this.scheduleSave();
+          wx.showToast({ title: "已添加图片", icon: "success" });
+          return;
+        }
         wx.showLoading({ title: "上传中...", mask: true });
         const cloudPath = `trips/${
           this.data.tripId || "tmp"
@@ -530,7 +573,6 @@ Page({
           cloudPath,
           filePath: tempFilePath,
           success: (up) => {
-            const order = this.getNextOrder();
             wx.cloud.getTempFileURL({
               fileList: [up.fileID],
               success: (r) => {
@@ -611,7 +653,11 @@ Page({
     const blocks = [...this.data.blocks, block].sort(
       (a, b) => a.order - b.order
     );
-    this.setData({ blocks });
+    this.setData({
+      blocks,
+      insertBeforeId: null,
+      insertAfterId: null,
+    });
     this.updateTripMeta();
   },
 
@@ -732,6 +778,109 @@ Page({
     wx.showToast({ title: "AI 优化开发中", icon: "none" });
   },
 
+  // 封面点击：编辑态更换封面；浏览态预览大图
+  onCoverTap() {
+    const { editMode, tripInfo } = this.data;
+    const url =
+      tripInfo.coverUrl ||
+      "https://images.unsplash.com/photo-1431274172761-fca41d930114?q=80&w=1080";
+
+    if (editMode) {
+      this.changeCover();
+      return;
+    }
+
+    if (!url) return;
+    wx.previewImage({ urls: [url] });
+  },
+
+  // 更换封面
+  changeCover() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ["image"],
+      sourceType: ["album", "camera"],
+      success: (res) => {
+        const tempFilePath =
+          res.tempFiles && res.tempFiles[0] && res.tempFiles[0].tempFilePath;
+        if (!tempFilePath) return;
+        const setCover = (url, fileID = "") => {
+          this.setData({
+            "tripInfo.coverUrl": url,
+            "tripInfo.coverFileID": fileID,
+          });
+          this.saveTrip();
+          wx.showToast({ title: "封面已更新", icon: "success" });
+        };
+        if (!wx.cloud) {
+          setCover(tempFilePath, "");
+          return;
+        }
+        wx.showLoading({ title: "上传中...", mask: true });
+        const cloudPath = `trips/${
+          this.data.tripId || "tmp"
+        }/cover_${Date.now()}.jpg`;
+        wx.cloud.uploadFile({
+          cloudPath,
+          filePath: tempFilePath,
+          success: (up) => {
+            wx.cloud.getTempFileURL({
+              fileList: [up.fileID],
+              success: (r) => {
+                const url =
+                  (r.fileList && r.fileList[0] && r.fileList[0].tempFileURL) ||
+                  up.fileID;
+                setCover(url, up.fileID);
+                wx.hideLoading();
+              },
+              fail: () => {
+                setCover(up.fileID, up.fileID);
+                wx.hideLoading();
+              },
+            });
+          },
+          fail: () => {
+            wx.hideLoading();
+            wx.showToast({ title: "上传失败", icon: "none" });
+          },
+        });
+      },
+    });
+  },
+
+  // 发布行程（占位：保存后提示）
+  publishTrip() {
+    this.flushSave && this.flushSave();
+    const doAfterPublish = () => {
+      wx.showModal({
+        title: "发布成功",
+        content: "是否生成长图海报用于分享？",
+        confirmText: "生成海报",
+        cancelText: "稍后再说",
+        success: (res) => {
+          if (res.confirm) {
+            this.generatePoster();
+          }
+        },
+      });
+    };
+    if (!wx.cloud || !this.data.tripId) {
+      wx.showToast({ title: "已发布（本地）", icon: "success" });
+      doAfterPublish();
+      return;
+    }
+    wx.cloud
+      .callFunction({
+        name: "trip-service",
+        data: { action: "publish", payload: { id: this.data.tripId } },
+      })
+      .then(() => {
+        wx.showToast({ title: "已发布", icon: "success" });
+        doAfterPublish();
+      })
+      .catch(() => wx.showToast({ title: "发布失败", icon: "none" }));
+  },
+
   editTitle() {
     wx.showModal({
       title: "修改标题",
@@ -754,7 +903,7 @@ Page({
     if (this._generatingPoster) return;
     this._generatingPoster = true;
     wx.showLoading({ title: "生成中", mask: true });
-    const { tripInfo, dayOverview, tripId } = this.data;
+    const { tripInfo, tripId, blocks } = this.data;
     const cover = tripInfo.coverUrl;
 
     // tasks
@@ -782,8 +931,20 @@ Page({
 
     Promise.all([coverTask, codeTask]).then(([imgPath, codeObj]) => {
       const ctx = wx.createCanvasContext("posterCanvas", this);
-      const W = 750,
-        H = 1200;
+      const W = 750;
+      const posterDays = this._buildPosterDaySummaries(blocks || []);
+      // 根据「天数 + 每天地点数」估算长图高度，尽量完整容纳行程
+      const totalPois = (posterDays || []).reduce(
+        (sum, d) => sum + ((d && d.pois && d.pois.length) || 0),
+        0
+      );
+      const baseH = 1100; // 封面 + 标题区域
+      const perDay = 70; // 每个 Day 标题区域高度
+      const perPoi = 32; // 每个地点行高度预估
+      const maxH = 2200;
+      const minH = 1200;
+      let H = baseH + (posterDays.length || 0) * perDay + totalPois * perPoi;
+      H = Math.max(minH, Math.min(maxH, H));
       // bg
       if (imgPath) {
         ctx.drawImage(imgPath, 0, 0, W, 500);
@@ -805,44 +966,116 @@ Page({
       // white body
       ctx.setFillStyle("#ffffff");
       ctx.fillRect(0, 500, W, H - 500);
-      // title
-      ctx.setFillStyle("#111");
+      // title：放在上方渐变区域底部，避免顶部大片留白
+      ctx.setFillStyle("#ffffff");
       ctx.setFontSize(44);
       ctx.setTextAlign("left");
       const title = tripInfo.title || "我的路书";
-      ctx.fillText(title, 40, 580);
-      // meta line
-      ctx.setFillStyle("#666");
+      ctx.fillText(title, 40, 420);
+      // meta line（同样放在渐变区域内）
+      ctx.setFillStyle("rgba(255,255,255,0.9)");
       ctx.setFontSize(26);
       const meta = `${tripInfo.city || "未知城市"}  ·  ${
         tripInfo.days || 0
       } Days`;
-      ctx.fillText(meta, 40, 630);
-      // route overview chips
-      let y = 690;
-      const chipH = 44;
-      const gap = 12;
-      let x = 40;
-      (dayOverview || []).forEach((d) => {
-        const txt = `D${d.index} · ${d.count}`;
-        ctx.setFontSize(22);
-        const w = ctx.measureText(txt).width + 46; // dot+padding
-        if (x + w > W - 40) {
-          x = 40;
-          y += chipH + gap;
-        }
-        // chip bg
-        ctx.setFillStyle("#f5f7fa");
-        ctx.fillRect(x, y, w, chipH);
-        // dot
-        ctx.setFillStyle(d.color || "#333");
+      ctx.fillText(meta, 40, 470);
+      // 路书正文：更具分享感的布局（徽章 / 分割 / 地址）
+      let y = 560;
+      const bodyLeft = 40;
+      const bodyRight = W - 40;
+      const textW = bodyRight - bodyLeft;
+      const theme = {
+        primary: "#6C5CE7",
+        text: "#333",
+        sub: "#777",
+        bullet: "#999",
+      };
+
+      // Header 徽章（城市 + 天数）
+      try {
+        const badgeCity =
+          tripInfo.city || this._deriveCityFromBlocks(blocks || []) || "旅途";
+        this._drawPill(
+          ctx,
+          badgeCity,
+          bodyLeft,
+          y - 40,
+          theme.primary,
+          "#fff",
+          22
+        );
+        const daysBadge = `${
+          tripInfo.days || (posterDays && posterDays.length) || 1
+        } Days`;
+        const cityWidth = Math.ceil(ctx.measureText(badgeCity).width);
+        this._drawPill(
+          ctx,
+          daysBadge,
+          bodyLeft + 18 + cityWidth + 28,
+          y - 40,
+          "rgba(108,92,231,0.15)",
+          theme.primary,
+          22
+        );
+      } catch (e) {}
+
+      const detailDays = this._buildPosterDayDetails(blocks || []);
+      (detailDays || []).forEach((d) => {
+        // Day 标题徽章
+        this._drawPill(
+          ctx,
+          `Day ${d.day}`,
+          bodyLeft,
+          y,
+          "rgba(108,92,231,0.12)",
+          theme.primary,
+          24
+        );
+        y += 42;
+
+        // 当天所有条目
+        (d.items || []).forEach((it) => {
+          // bullet 点
+          ctx.setFillStyle(theme.bullet);
+          ctx.beginPath();
+          ctx.arc(bodyLeft + 6, y - 10, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 名称
+          ctx.setFillStyle(theme.text);
+          ctx.setFontSize(26);
+          y = this._wrapText(
+            ctx,
+            it.name || "",
+            bodyLeft + 18,
+            y,
+            textW - 24,
+            34
+          );
+
+          // 地址（可选）
+          if (it.address) {
+            ctx.setFillStyle(theme.sub);
+            ctx.setFontSize(20);
+            y = this._wrapText(
+              ctx,
+              it.address,
+              bodyLeft + 18,
+              y,
+              textW - 24,
+              28
+            );
+          }
+          y += 6;
+        });
+
+        // 分割线
+        ctx.setStrokeStyle("rgba(0,0,0,0.06)");
         ctx.beginPath();
-        ctx.arc(x + 18, y + chipH / 2, 6, 0, Math.PI * 2);
-        ctx.fill();
-        // text
-        ctx.setFillStyle("#333");
-        ctx.fillText(txt, x + 32, y + chipH / 2 + 8);
-        x += w + gap;
+        ctx.moveTo(bodyLeft, y);
+        ctx.lineTo(bodyRight, y);
+        ctx.stroke();
+        y += 18;
       });
 
       // QR code overlay (optional)
@@ -850,20 +1083,29 @@ Page({
         const size = 160;
         const px = W - 40 - size;
         const py = H - 40 - size;
+        // 背景白卡，提升对比
+        ctx.setFillStyle("rgba(255,255,255,0.96)");
+        ctx.fillRect(px - 18, py - 28, size + 36, size + 64);
         ctx.drawImage(codeObj.path, px, py, size, size);
-        ctx.setFillStyle("#666");
+        ctx.setFillStyle("#444");
         ctx.setFontSize(20);
-        ctx.fillText("扫码查看行程", px - 4, py - 12);
+        ctx.fillText("长按识别 · 获取完整路线", px - 18, py - 36);
       }
 
-      // footer
+      // footer：应用说明 + 品牌文案
       ctx.setFillStyle("#999");
       ctx.setFontSize(22);
-      ctx.fillText("由 路书小程序 生成", 40, H - 60);
+      ctx.fillText("扫码打开小程序，查看和编辑完整路书", 40, H - 96);
+      ctx.fillText("由「路书小程序」生成 · AI 魔法行程助手", 40, H - 60);
       ctx.draw(false, () => {
         wx.canvasToTempFilePath(
           {
             canvasId: "posterCanvas",
+            // 指定导出区域尺寸，避免长图被裁剪
+            width: W,
+            height: H,
+            destWidth: W * 2,
+            destHeight: H * 2,
             success: (res) => {
               const temp = res.tempFilePath;
               const finish = () => {
@@ -872,6 +1114,7 @@ Page({
                 wx.previewImage({ urls: [temp] });
               };
               // upload poster & record share history
+
               if (tripId && wx.cloud) {
                 const cloudPath = `posters/${tripId}_${Date.now()}.jpg`;
                 wx.cloud
@@ -936,37 +1179,19 @@ Page({
   // ============================================
 
   updateTripMeta() {
-    // 计算总费用
-    const totalCost = this.data.blocks
-      .filter((b) => b.type === BLOCK_TYPES.POI)
-      .reduce((sum, b) => sum + (b.content.cost || 0), 0);
+    // 计算总费用（包含所有带 cost 字段的块）
+    const totalCost = (this.data.blocks || []).reduce(
+      (sum, b) => sum + (Number(b?.content?.cost) || 0),
+      0
+    );
 
     const dayOverview = this._computeDayOverview(this.data.blocks || []);
 
+    const derivedCity = this._deriveCityFromBlocks(this.data.blocks || []);
+    if (derivedCity && derivedCity !== this.data.tripInfo.city) {
+      this.setData({ "tripInfo.city": derivedCity });
+    }
     this.setData({
-      _fetchTripCode(tripId) {
-        if (!tripId || !wx.cloud) return Promise.resolve(null);
-        return wx.cloud
-          .callFunction({
-            name: "trip-service",
-            data: {
-              action: "genCode",
-              payload: {
-                tripId,
-                path: `/pages/trip-detail/trip-detail?id=${tripId}`,
-              },
-            },
-          })
-          .then((res) => {
-            const r = (res && res.result) || {};
-            const fileID = r.fileID || r.codeFileID || "";
-            const url = r.tempUrl || r.url || "";
-            if (!fileID && !url) return null;
-            return { fileID, url };
-          })
-          .catch(() => null);
-      },
-
       "tripInfo.meta.totalCost": totalCost,
       "tripInfo.updatedAt": Date.now(),
       dayOverview,
@@ -1005,6 +1230,129 @@ Page({
       }));
   },
 
+  // 为长图海报构建按天的地点概览
+  _buildPosterDaySummaries(blocks) {
+    const map = {};
+    let currentDay = 1;
+    (blocks || []).forEach((b) => {
+      if (b.type === BLOCK_TYPES.DAY_DIVIDER) {
+        const idx = Number(b.content && b.content.dayIndex);
+        if (idx && idx > 0) {
+          currentDay = idx;
+        } else {
+          currentDay += 1;
+        }
+        if (!map[currentDay]) {
+          map[currentDay] = { day: currentDay, pois: [] };
+        }
+        return;
+      }
+      if (b.type === BLOCK_TYPES.POI && b.content) {
+        const name = b.content.name || "";
+        if (!name) return;
+        if (!map[currentDay]) {
+          map[currentDay] = { day: currentDay, pois: [] };
+        }
+        map[currentDay].pois.push(name);
+      }
+    });
+    return Object.keys(map)
+      .map((k) => Number(k))
+      .sort((a, b) => a - b)
+      .map((d) => map[d]);
+  },
+
+  // 文本自动换行绘制，返回最新的 y 坐标，方便继续往下排版
+  _wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    if (!text) return y;
+    let line = "";
+    for (let i = 0; i < text.length; i++) {
+      const testLine = line + text[i];
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && line) {
+        ctx.fillText(line, x, y);
+        line = text[i];
+        y += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    if (line) {
+      ctx.fillText(line, x, y);
+      y += lineHeight;
+    }
+    return y;
+  },
+
+  // 绘制圆角胶囊徽章
+  _drawPill(ctx, text, x, y, bgColor, textColor, fontSize = 22) {
+    if (!text) return 0;
+    const padX = 14;
+    const padY = 8;
+    ctx.setFontSize(fontSize);
+    const w = Math.ceil(ctx.measureText(text).width) + padX * 2;
+    const h = fontSize + padY * 2;
+    const r = h / 2;
+    ctx.beginPath();
+    ctx.setFillStyle(bgColor || "#000");
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arc(x + w - r, y + r, r, -Math.PI / 2, Math.PI / 2);
+    ctx.lineTo(x + r, y + h);
+    ctx.arc(x + r, y + r, r, Math.PI / 2, (Math.PI * 3) / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.setFillStyle(textColor || "#fff");
+    ctx.fillText(text, x + padX, y + padY + fontSize - 4);
+    return h;
+  },
+
+  // 为长图构建按天的详细列表（含地址）
+  _buildPosterDayDetails(blocks) {
+    const map = {};
+    let currentDay = 1;
+    (blocks || []).forEach((b) => {
+      if (b.type === BLOCK_TYPES.DAY_DIVIDER) {
+        const idx = Number(b.content && b.content.dayIndex);
+        if (idx && idx > 0) {
+          currentDay = idx;
+        } else {
+          currentDay += 1;
+        }
+        if (!map[currentDay]) map[currentDay] = { day: currentDay, items: [] };
+        return;
+      }
+      if (b.type === BLOCK_TYPES.POI && b.content) {
+        const name = b.content.name || "";
+        if (!name) return;
+        const address = b.content.address || "";
+        if (!map[currentDay]) map[currentDay] = { day: currentDay, items: [] };
+        map[currentDay].items.push({ name, address });
+      }
+    });
+    return Object.keys(map)
+      .map((k) => Number(k))
+      .sort((a, b) => a - b)
+      .map((d) => map[d]);
+  },
+
+  _deriveCityFromBlocks(blocks) {
+    for (let i = 0; i < (blocks || []).length; i++) {
+      const b = blocks[i];
+      if (b.type === BLOCK_TYPES.POI && b.content) {
+        if (b.content.city) return b.content.city;
+        const addr = b.content.address || "";
+        const idx = addr.indexOf("市");
+        if (idx > 0) return addr.slice(0, idx + 1);
+        const idx2 = addr.indexOf("县");
+        if (idx2 > 0) return addr.slice(0, idx2 + 1);
+        const idx3 = addr.indexOf("区");
+        if (idx3 > 0) return addr.slice(0, idx3 + 1);
+      }
+    }
+    return "";
+  },
+
   saveTrip() {
     const { tripId, tripInfo, blocks } = this.data;
     if (!tripId) return;
@@ -1016,6 +1364,9 @@ Page({
       intent: tripInfo.intent,
       meta: tripInfo.meta,
       blocks: blocks,
+      // 
+      coverUrl: tripInfo.coverUrl || "",
+      coverFileID: tripInfo.coverFileID || "",
     };
 
     wx.cloud

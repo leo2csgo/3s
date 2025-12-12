@@ -1,12 +1,99 @@
-.img-block{background:rgba(255,255,255,.6);border-radius:16rpx;padding:16rpx}
-.grid{display:flex;flex-wrap:wrap;gap:12rpx}
-.cell{position:relative;width:31.5%;}
-.cell:before{content:"";display:block;padding-top:100%}
-.img{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12rpx}
-.cell.add{display:flex;align-items:center;justify-content:center;background:#f5f7fa;color:#999;font-size:48rpx;border-radius:12rpx}
-.ops{position:absolute;right:6rpx;top:6rpx;display:flex;gap:6rpx}
-.op{background:rgba(0,0,0,.55);color:#fff;border-radius:999rpx;padding:4rpx 10rpx;font-size:22rpx}
-.op.delete{background:rgba(231,76,60,.9)}
-.caption{margin-top:12rpx}
-.caption-input{width:100%;padding:12rpx 16rpx;border-radius:12rpx;background:rgba(255,255,255,.8);font-size:26rpx;color:#333}
+.img-block {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16rpx;
+  padding: 16rpx;
+}
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+/* 默认 3 列，兼容旧数据 */
+.cell {
+  position: relative;
+  width: 31.5%;
+}
+.cell:before {
+  content: "";
+  display: block;
+  padding-top: 100%;
+}
+.img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+}
+.cell.add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  color: #999;
+  font-size: 48rpx;
+  border-radius: 12rpx;
+}
+.ops {
+  position: absolute;
+  right: 6rpx;
+  top: 6rpx;
+  display: flex;
+  gap: 6rpx;
+}
+.op {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border-radius: 999rpx;
+  padding: 4rpx 10rpx;
+  font-size: 22rpx;
+}
+.op.delete {
+  background: rgba(231, 76, 60, 0.9);
+}
+.caption {
+  margin-top: 12rpx;
+}
+.caption-input {
+  width: 100%;
+  padding: 12rpx 16rpx;
+  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 26rpx;
+  color: #333;
+}
 
+/* ===== 仿朋友圈九宫格布局 ===== */
+/* 1 张：整行大图 */
+.grid.layout-1 .cell {
+  width: 100%;
+}
+.grid.layout-1 .cell.add {
+  width: 31.5%;
+}
+
+/* 2 张：两列 */
+.grid.layout-2 .cell {
+  width: 48%;
+}
+
+/* 3 张：三列 */
+.grid.layout-3 .cell {
+  width: 31.5%;
+}
+
+/* 4 张：2x2 */
+.grid.layout-4 .cell {
+  width: 48%;
+}
+
+/* 5-6 张：三列，稍大一点 */
+.grid.layout-6 .cell {
+  width: 31.5%;
+}
+
+/* 7-9 张：标准九宫格（3 列） */
+.grid.layout-9 .cell {
+  width: 31.5%;
+}

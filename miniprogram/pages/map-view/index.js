@@ -18,6 +18,8 @@ Page({
     selectedDay: "all",
     activeMarker: null,
     stats: null,
+    cards: [],
+    activeCardIndex: 0,
   },
 
   onLoad(options) {
@@ -165,6 +167,14 @@ Page({
       )}`,
     };
 
+    const cards = (markers || []).map((m) => ({
+      id: m.id,
+      title: m.name || "",
+      sub: m.address || "",
+      latitude: m.latitude,
+      longitude: m.longitude,
+    }));
+
     this.setData({
       selectedDay: day,
       markers,
@@ -172,7 +182,29 @@ Page({
       includePoints,
       activeMarker: null,
       stats,
+      cards,
+      activeCardIndex: 0,
     });
+  },
+
+  // Swiper 切换时聚焦对应地点
+  onSwiperChange(e) {
+    const i = (e.detail && e.detail.current) || 0;
+    this.setData({ activeCardIndex: i });
+    this._focusCard(i);
+  },
+
+  _focusCard(i) {
+    const card = (this.data.cards || [])[i];
+    if (!card) return;
+    if (
+      typeof card.latitude === "number" &&
+      typeof card.longitude === "number"
+    ) {
+      this.setData({
+        includePoints: [{ latitude: card.latitude, longitude: card.longitude }],
+      });
+    }
   },
 
   _distanceKm(a, b) {
@@ -185,6 +217,7 @@ Page({
     const h =
       Math.sin(dLat / 2) ** 2 +
       Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+
     const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
     return R * c;
   },

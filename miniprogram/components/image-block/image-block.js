@@ -6,6 +6,7 @@ Component({
   data: {
     images: [],
     caption: "",
+    layoutClass: "layout-0",
   },
   observers: {
     block: function (b) {
@@ -20,10 +21,35 @@ Component({
           : content.url
           ? [{ url: content.url, fileID: content.fileID || "" }]
           : [];
-      this.setData({ images, caption: content.caption || "" });
+      this.setData({
+        images,
+        caption: content.caption || "",
+        layoutClass: this._computeLayoutClass(images.length),
+      });
     },
   },
   methods: {
+    _computeLayoutClass(count) {
+      if (count <= 0) return "layout-0";
+      if (count === 1) return "layout-1";
+      if (count === 2) return "layout-2";
+      if (count === 3) return "layout-3";
+      if (count === 4) return "layout-4";
+      if (count <= 6) return "layout-6";
+      return "layout-9";
+    },
+    _updateImages(images, caption) {
+      const safeImages = images || [];
+      this.setData({
+        images: safeImages,
+        caption: caption !== undefined ? caption : this.data.caption,
+        layoutClass: this._computeLayoutClass(safeImages.length),
+      });
+      this._emit(
+        safeImages,
+        caption !== undefined ? caption : this.data.caption
+      );
+    },
     _emit(images, caption) {
       const first = images[0] || {};
       this.triggerEvent("update", {
@@ -42,8 +68,10 @@ Component({
       if (!urls.length) return;
       wx.previewImage({ current: urls[idx] || urls[0], urls });
     },
+    // 添加图片：可多选，最多 9 张（按剩余数量限制）
     onAdd() {
-      const remain = 9 - (this.data.images || []).length;
+      const current = (this.data.images || []).length;
+      const remain = 9 - current;
       if (remain <= 0) return;
       wx.chooseMedia({
         count: remain,
@@ -56,8 +84,7 @@ Component({
           this._uploadFilesSequentially(files)
             .then((newItems) => {
               const images = (this.data.images || []).concat(newItems);
-              this.setData({ images });
-              this._emit(images, this.data.caption);
+              this._updateImages(images);
               wx.hideLoading();
               wx.showToast({ title: "已添加", icon: "success" });
             })
@@ -82,8 +109,7 @@ Component({
             .then((item) => {
               const images = (this.data.images || []).slice();
               images[idx] = item;
-              this.setData({ images });
-              this._emit(images, this.data.caption);
+              this._updateImages(images);
               wx.hideLoading();
               wx.showToast({ title: "已更新", icon: "success" });
             })
@@ -98,13 +124,11 @@ Component({
       const idx = Number(e.currentTarget.dataset.index);
       const images = (this.data.images || []).slice();
       images.splice(idx, 1);
-      this.setData({ images });
-      this._emit(images, this.data.caption);
+      this._updateImages(images);
     },
     onCaptionBlur(e) {
       const caption = e.detail.value || "";
-      this.setData({ caption });
-      this._emit(this.data.images || [], caption);
+      this._updateImages(this.data.images || [], caption);
     },
     async _uploadFilesSequentially(files) {
       const out = [];

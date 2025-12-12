@@ -1,37 +1,30 @@
 Component({
   properties: { block: Object, editMode: Boolean },
   data: { columns: 1 },
-  observers: {
-    block: function (b) {
-      if (!b) return;
-      const c = b.content || {};
-      this.setData({ columns: Number(c.columns) || 1 });
-    },
-  },
   methods: {
     onToggle(e) {
       const idx = e.currentTarget.dataset.index;
       const items = (this.data.block.content.items || []).slice();
       items[idx].checked = !items[idx].checked;
-      this._triggerUpdate(items, this.data.columns);
+      this._triggerUpdate(items);
     },
     onInputBlur(e) {
       const idx = e.currentTarget.dataset.index;
       const val = e.detail.value;
       const items = (this.data.block.content.items || []).slice();
       items[idx].text = val;
-      this._triggerUpdate(items, this.data.columns);
+      this._triggerUpdate(items);
     },
     onAddItem() {
       const items = (this.data.block.content.items || []).slice();
       items.push({ text: "", checked: false });
-      this._triggerUpdate(items, this.data.columns);
+      this._triggerUpdate(items);
     },
     onDeleteItem(e) {
       const idx = e.currentTarget.dataset.index;
       const items = (this.data.block.content.items || []).slice();
       items.splice(idx, 1);
-      this._triggerUpdate(items, this.data.columns);
+      this._triggerUpdate(items);
     },
     onTemplate() {
       const templates = ["证件", "电子设备", "洗漱包"];
@@ -41,15 +34,9 @@ Component({
           const t = templates[res.tapIndex];
           const items = (this.data.block.content.items || []).slice();
           const add = this._templateItems(t);
-          this._triggerUpdate(items.concat(add), this.data.columns);
+          this._triggerUpdate(items.concat(add));
         },
       });
-    },
-    onToggleColumns() {
-      const next = this.data.columns === 1 ? 2 : 1;
-      this.setData({ columns: next });
-      const items = (this.data.block.content.items || []).slice();
-      this._triggerUpdate(items, next);
     },
     _templateItems(name) {
       switch (name) {
@@ -75,10 +62,10 @@ Component({
           return [];
       }
     },
-    _triggerUpdate(items, columns) {
+    _triggerUpdate(items) {
       this.triggerEvent("update", {
         blockId: this.data.block.id,
-        content: { items, columns },
+        content: { items, columns: 1 },
       });
     },
   },

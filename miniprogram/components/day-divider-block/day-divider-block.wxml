@@ -3,18 +3,27 @@
   复用原有的 Day 标题样式
 -->
 <view class="day-divider">
-  <!-- Day 徽章 -->
-  <view class="day-badge">
-    <text class="day-label">{{block.content.label || 'Day ' + block.content.dayIndex}}</text>
-  </view>
+	  <view class="day-row">
+	    <!-- 左侧：Day 徽章 + 主题 -->
+	    <view class="day-left">
+	      <view class="day-badge">
+	        <text class="day-label">{{block.content.label || 'Day ' + block.content.dayIndex}}</text>
+	      </view>
+	      <text class="day-theme" wx:if="{{block.content.theme}}">· {{block.content.theme}}</text>
+	    </view>
 
-  <!-- 日期 (可选) -->
-  <text class="day-date" wx:if="{{block.content.date}}">{{block.content.date}}</text>
+	    <!-- 右侧：日期（编辑态为日期选择器，浏览态右对齐展示） -->
+	    <view class="day-right">
+	      <block wx:if="{{editMode}}">
+	        <picker mode="date" value="{{block.content.date || defaultDate}}" bindchange="onDatePick">
+	          <view class="day-date-input glass">{{block.content.date || '选择日期'}}</view>
+	        </picker>
+	      </block>
+	      <text class="day-date" wx:if="{{!editMode && block.content.date}}">{{block.content.date}}</text>
+	    </view>
+	  </view>
 
-  <!-- 主题 (可选) -->
-  <text class="day-theme" wx:if="{{block.content.theme}}">· {{block.content.theme}}</text>
-
-  <!-- 分隔线 -->
-  <view class="divider-line"></view>
-</view>
+	  <!-- 底部分隔线 -->
+	  <view class="divider-line"></view>
+	</view>
 

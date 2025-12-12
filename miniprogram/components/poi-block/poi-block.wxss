@@ -200,11 +200,12 @@
 
 /* Note 样式 */
 .card-note {
-  margin-top: 4rpx;
+  margin-top: 16rpx;
 }
 .note-text {
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.9);
+  line-height: 1.7;
 }
 
 /* 编辑态输入框 */
@@ -219,4 +220,12 @@
   color: rgba(255, 255, 255, 0.9);
   border-bottom: 1rpx solid rgba(255, 255, 255, 0.3);
   width: 100%;
+}
+
+/* Picker display */
+.picker-display {
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  padding: 6rpx 0;
+  min-width: 120rpx;
 }

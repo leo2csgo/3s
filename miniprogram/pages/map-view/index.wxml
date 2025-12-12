@@ -34,5 +34,19 @@
       <button class="card-btn ghost" size="mini" bindtap="clearActive">关闭</button>
     </view>
   </view>
+  <!-- 底部行程卡片 Swiper -->
+  <view class="bottom-swiper glass" wx:if="{{cards && cards.length}}">
+    <swiper class="swiper" current="{{activeCardIndex}}" bindchange="onSwiperChange">
+      <block wx:for="{{cards}}" wx:key="id">
+        <swiper-item>
+          <view class="swiper-item">
+            <view class="s-title">{{item.title}}</view>
+            <view class="s-sub" wx:if="{{item.sub}}">{{item.sub}}</view>
+          </view>
+        </swiper-item>
+      </block>
+    </swiper>
+  </view>
+
 </view>
 

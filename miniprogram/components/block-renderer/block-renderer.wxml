@@ -8,6 +8,9 @@
   <day-divider-block
     wx:if="{{block.type === 'day-divider'}}"
     block="{{block}}"
+    editMode="{{editMode}}"
+    bind:edit="onEdit"
+    bind:update="onUpdate"
   />
 
   <!-- POI Block -->
@@ -31,11 +34,36 @@
     bind:update="onUpdate"
   />
 
-  <!-- Transport Block (结构化展示：方式 · 时长 + 起点 → 终点) -->
-  <view wx:elif="{{block.type === 'transport'}}" class="transport-block">
-    <view class="transport-info">
-      <text class="transport-main">{{block.content.mode || '交通'}}<text wx:if="{{block.content.duration}}"> · {{block.content.duration}}分钟</text></text>
-      <text class="transport-route" wx:if="{{block.content.from || block.content.to}}">{{block.content.from || '出发地'}} → {{block.content.to || '目的地'}}</text>
+  <!-- Transport Block (中文映射 + 图标联动 + 编辑) -->
+  <view wx:elif="{{block.type === 'transport'}}" class="transport-card">
+    <view class="delete-btn-mini" wx:if="{{editMode}}" catchtap="onDeleteTransport">×</view>
+
+    <view class="trans-main">
+      <picker wx:if="{{editMode}}" mode="selector" range="{{transNames}}" value="{{transSelected}}" bindchange="onTransModeChange">
+        <view class="trans-picker">
+          <text class="trans-ico">{{transMeta.icon}}</text>
+          <text>{{transMeta.name}}</text>
+        </view>
+      </picker>
+      <view wx:else class="trans-mode">
+        <text class="trans-ico">{{transMeta.icon}}</text>
+        <text>{{transMeta.name || '交通'}}</text>
+      </view>
+      <text class="dot">·</text>
+      <view class="duration-wrap">
+        <picker wx:if="{{editMode}}" mode="multiSelector" range="{{durationColumns}}" value="{{durationSelected}}" bindchange="onTransDurationPick">
+          <view class="trans-picker">{{transDurationText || '时长'}}</view>
+        </picker>
+        <view wx:else class="trans-time">{{transDurationText || ((block.content.duration||0)+'分钟')}}</view>
+      </view>
+    </view>
+
+    <view class="trans-route">
+      <input wx:if="{{editMode}}" class="trans-input" value="{{block.content.from}}" bindblur="onTransportInput" data-field="from" placeholder="出发地" />
+      <text wx:else>{{block.content.from || '出发地'}}</text>
+      <text class="arrow">→</text>
+      <input wx:if="{{editMode}}" class="trans-input" value="{{block.content.to}}" bindblur="onTransportInput" data-field="to" placeholder="目的地" />
+      <text wx:else>{{block.content.to || '目的地'}}</text>
     </view>
   </view>
 
@@ -56,8 +84,18 @@
     bind:update="onUpdate"
   />
 
+  <!-- 通用迷你删除按钮（除 transport 外，其内已内置） -->
+  <view class="delete-btn-mini" wx:if="{{editMode && block.type==='day-divider'}}" catchtap="onDelete">×</view>
+  <view class="delete-btn-mini" wx:if="{{editMode && block.type==='poi'}}" catchtap="onDelete">×</view>
+  <view class="delete-btn-mini" wx:if="{{editMode && block.type==='text'}}" catchtap="onDelete">×</view>
+  <view class="delete-btn-mini" wx:if="{{editMode && block.type==='image'}}" catchtap="onDelete">×</view>
+  <view class="delete-btn-mini" wx:if="{{editMode && block.type==='checklist'}}" catchtap="onDelete">×</view>
+
   <!-- Unknown Block Type -->
-  <view wx:else class="unknown-block">
+  <view
+    wx:if="{{block && block.type !== 'day-divider' && block.type !== 'poi' && block.type !== 'text' && block.type !== 'transport' && block.type !== 'image' && block.type !== 'checklist'}}"
+    class="unknown-block"
+  >
     <text>未知块类型: {{block.type}}</text>
   </view>
 </view>

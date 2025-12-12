@@ -1,5 +1,5 @@
 <view class="img-block">
-  <view class="grid">
+	  <view class="grid {{layoutClass}}">
     <block wx:for="{{images}}" wx:key="index">
       <view class="cell">
         <image class="img" src="{{item.url}}" mode="aspectFill"

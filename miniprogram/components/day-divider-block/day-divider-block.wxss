@@ -1,11 +1,25 @@
 /* Day Divider Block 样式 - 复用原有日期标题样式 */
 
 .day-divider {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
   padding: 16rpx 0;
   margin-top: 16rpx;
+}
+
+.day-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.day-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.day-right {
+  flex-shrink: 0;
 }
 
 /* Day 徽章 */
@@ -39,9 +53,23 @@
 
 /* 分隔线 */
 .divider-line {
-  flex: 1;
+  margin-top: 16rpx;
   height: 2rpx;
-  background: linear-gradient(90deg, rgba(161, 140, 209, 0.4) 0%, rgba(161, 140, 209, 0) 100%);
-  margin-left: 16rpx;
+  background: linear-gradient(
+    90deg,
+    rgba(161, 140, 209, 0.4) 0%,
+    rgba(161, 140, 209, 0) 100%
+  );
 }
 
+/* 编辑态日期输入 */
+.day-date-input {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  color: #fff;
+  border: 1rpx solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.16);
+}

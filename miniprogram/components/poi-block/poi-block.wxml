@@ -12,19 +12,23 @@
   <view class="card-meta">
     <view class="meta-item">
       <text class="icon">⏰</text>
-      <input wx:if="{{editMode}}" class="meta-input" value="{{block.content.startTime || block.content.time}}" bindblur="onInputBlur" data-field="startTime" placeholder="10:00"/>
+      <picker wx:if="{{editMode}}" mode="time" value="{{block.content.startTime || block.content.time || '08:00'}}" bindchange="onTimePick">
+        <view class="picker-display">{{block.content.startTime || block.content.time || '选择时间'}}</view>
+      </picker>
       <text wx:else>{{block.content.startTime || block.content.time || '时间'}}</text>
     </view>
     <text class="dot">·</text>
     <view class="meta-item">
       <text class="icon">⏳</text>
-      <input wx:if="{{editMode}}" class="meta-input" value="{{block.content.duration}}" bindblur="onInputBlur" data-field="duration" placeholder="60"/>
+      <picker wx:if="{{editMode}}" mode="multiSelector" range="{{durationColumns}}" value="{{durationSelected}}" bindchange="onDurationPick">
+        <view class="picker-display">{{formattedDuration || '选择时长'}}</view>
+      </picker>
       <text wx:else>{{formattedDuration || (block.content.duration ? (block.content.duration + '分钟') : '')}}</text>
     </view>
     <text class="dot" wx:if="{{block.content.cost || editMode}}">·</text>
     <view class="meta-item" wx:if="{{block.content.cost || editMode}}">
       <text class="icon">💰</text>
-      <input wx:if="{{editMode}}" class="meta-input" value="{{block.content.cost}}" bindblur="onInputBlur" data-field="cost" placeholder="0"/>
+      <input wx:if="{{editMode}}" class="meta-input" value="{{block.content.cost === 0 ? '' : block.content.cost}}" bindblur="onInputBlur" data-field="cost" placeholder="金额" type="digit"/>
       <text wx:else>¥{{block.content.cost}}</text>
     </view>
   </view>
@@ -51,7 +55,7 @@
         auto-height
         maxlength="200"
         placeholder="点击编辑活动描述..."
-        value="{{block.content.description || block.content.address}}"
+        value="{{block.content.description}}"
         bindinput="onDescInput"
         bindblur="onDescBlur"
       />

@@ -93,3 +93,29 @@
   background: #f2f3f5;
   color: #333;
 }
+
+/* Bottom swiper */
+.bottom-swiper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 11;
+  padding: 8rpx 0 env(safe-area-inset-bottom);
+}
+.bottom-swiper .swiper {
+  height: 160rpx;
+}
+.swiper-item {
+  padding: 16rpx 24rpx;
+}
+.s-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #222;
+}
+.s-sub {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 6rpx;
+}

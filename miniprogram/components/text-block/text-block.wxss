@@ -37,6 +37,13 @@
   box-shadow: 0 0 0 4rpx rgba(161, 140, 209, 0.1);
 }
 
+/* 文本主行：图标 + 文本一行展示 */
+.text-main {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 /* 删除按钮 */
 .delete-btn {
   position: absolute;
@@ -60,11 +67,9 @@
   line-height: 1;
 }
 
-/* 样式图标 */
+/* 样式图标：与文字同列显示，不再绝对定位 */
 .style-icon {
-  position: absolute;
-  top: 12rpx;
-  left: 12rpx;
+  flex-shrink: 0;
   font-size: 28rpx;
 }
 
@@ -116,4 +121,3 @@
 .style-warning .text-input {
   color: #a94442;
 }
-

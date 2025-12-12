@@ -86,10 +86,13 @@ const BUDGET_RANGE = {
 };
 
 // 云函数入口函数
+// 预留 provider 字段，后续可根据 provider 使用 DeepSeek / 腾讯云大模型等生成行程
+// provider 取值示例："tencent-lbs"(默认)、"deepseek", "tencent-llm"
 exports.main = async (event, context) => {
-  let { city, days, intent_tag } = event;
+  let { city, days, intent_tag, provider } = event;
+  const modelProvider = provider || "tencent-lbs";
 
-  console.log("收到请求:", { city, days, intent_tag });
+  console.log("收到请求:", { city, days, intent_tag, provider: modelProvider });
 
   // 参数验证
   if (!city || !days || !intent_tag) {
@@ -247,6 +250,31 @@ exports.main = async (event, context) => {
   }
 };
 
+/**
+ * 统一的大模型返回结构约定（DeepSeek / 腾讯云等）：
+ * {
+ *   success: boolean,
+ *   plan: { days: Array, total_cost: number },
+ *   content: string,
+ *   isRealtime: boolean,
+ *   tripInfo: object,
+ *   blocks: Array<object>,
+ * }
+ *
+ * 这里只是预留接口，当前版本仍然只使用 LBS + 兜底数据方案。
+ * 后续接入 DeepSeek / 腾讯云大模型时，可以在这里实现真实调用，
+ * 并将返回结果转换为上述统一结构即可与前端完全兼容。
+ */
+async function generatePlanWithModel({ city, days, intent_tag, provider }) {
+  console.log("generatePlanWithModel 占位实现", {
+    city,
+    days,
+    intent_tag,
+    provider,
+  });
+  return null;
+}
+
 // 将腾讯 LBS POI 转换为活动格式（增强版）
 function convertPOIToActivities(pois, purpose) {
   console.log("开始转换 POI 数据，目的:", purpose);
@@ -262,6 +290,8 @@ function convertPOIToActivities(pois, purpose) {
       name: poi.name,
       address: poi.address,
       category: poi.category,
+      // 关键：保留腾讯 LBS 返回的经纬度，后续用于路书 POI、地图模式和导航
+      location: poi.location || null,
       duration: duration,
       cost: cost,
       description: `${poi.category} - ${poi.address}`,
@@ -481,7 +511,10 @@ function generateSmartPlan(activities, days, purpose) {
           name: act.name,
           duration: act.duration,
           cost: act.cost,
+          // 保留地址和经纬度，后续用于路书 POI、地图模式和导航
           description: act.description || act.address,
+          address: act.address || "",
+          location: act.location || null,
         };
       }),
     });
@@ -502,7 +535,10 @@ function generateSmartPlan(activities, days, purpose) {
             name: act.name,
             duration: act.duration,
             cost: act.cost,
+            // 保留地址和经纬度
             description: act.description || act.address,
+            address: act.address || "",
+            location: act.location || null,
           };
         }),
       });
@@ -527,7 +563,10 @@ function generateSmartPlan(activities, days, purpose) {
             name: act.name,
             duration: act.duration,
             cost: act.cost,
+            // 保留地址和经纬度
             description: act.description || act.address,
+            address: act.address || "",
+            location: act.location || null,
           };
         }),
       });
